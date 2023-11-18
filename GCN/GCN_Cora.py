@@ -71,9 +71,10 @@ for epoch in range(1000):
     loss = F.nll_loss(out[data.train_mask], data.y[data.train_mask])
     loss.backward()
     optimizer.step()
-    if epoch%200 == 0:
+    if (epoch+1)%200 == 0:
         print(loss)
-        torch.save(model.state_dict(), f'model_epoch_{epoch}_{name_data}.pth')
+        torch.save(model.state_dict(), f'model_epoch_{epoch+1}_{name_data}.pth')
+# model.load_state_dict(torch.load('model_epoch_1000_Cora.pth'))
 model.eval()
 _, pred = model(data).max(dim=1)
 correct = float (pred[data.test_mask].eq(data.y[data.test_mask]).sum().item())
