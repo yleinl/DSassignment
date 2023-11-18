@@ -8,9 +8,9 @@ from torch_geometric.datasets import Planetoid
 
 
 #### Loading the Dataset ####
-name_data = 'Cora'
-dataset = Planetoid(root= '/tmp/' + name_data, name = name_data)
 
+name_data = 'PubMed'  # For the CoauthorCS dataset
+dataset = Planetoid(root='/tmp/PubMed', name='PubMed')
 
 #### The Graph Convolution Layer ####
 class GraphConvolution(MessagePassing):

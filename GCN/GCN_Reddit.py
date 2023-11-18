@@ -4,7 +4,7 @@ import torch
 import torch.nn.functional as F
 from torch_geometric.nn import MessagePassing
 from torch_geometric.utils import add_self_loops, degree
-from torch_geometric.datasets import Planetoid, Coauthor, Reddit
+from torch_geometric.datasets import Reddit
 
 
 #### Loading the Dataset ####

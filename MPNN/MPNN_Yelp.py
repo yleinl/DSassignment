@@ -2,10 +2,11 @@ import torch
 import torch.nn.functional as F
 from torch_geometric.nn import MessagePassing
 from torch_geometric.utils import add_self_loops, degree
-from torch_geometric.datasets import Planetoid, Coauthor, Reddit
+from torch_geometric.datasets import Yelp
 
-name_data = 'CS'  # For the CoauthorCS dataset
-dataset = Coauthor(root='/tmp/Coauthor' + name_data, name=name_data)
+
+name_data = 'Yelp'
+dataset = Yelp(root='/tmp/' + name_data)
 class MPNNLayer(MessagePassing):
     def __init__(self, in_channels, out_channels):
         super(MPNNLayer, self).__init__(aggr='mean')  # 'mean' aggregation.

@@ -4,13 +4,13 @@ import torch
 import torch.nn.functional as F
 from torch_geometric.nn import MessagePassing
 from torch_geometric.utils import add_self_loops, degree
-from torch_geometric.datasets import Planetoid, Coauthor, Reddit
+from torch_geometric.datasets import Yelp
 
 
 #### Loading the Dataset ####
+name_data = 'Yelp'
+dataset = Yelp(root='/tmp/' + name_data)
 
-name_data = 'CS'  # For the CoauthorCS dataset
-dataset = Coauthor(root='/tmp/Coauthor' + name_data, name=name_data)
 
 #### The Graph Convolution Layer ####
 class GraphConvolution(MessagePassing):

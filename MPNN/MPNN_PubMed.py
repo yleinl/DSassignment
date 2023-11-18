@@ -4,8 +4,8 @@ from torch_geometric.nn import MessagePassing
 from torch_geometric.utils import add_self_loops, degree
 from torch_geometric.datasets import Planetoid
 
-name_data = 'Cora'
-dataset = Planetoid(root= '/tmp/' + name_data, name = name_data)
+name_data = 'PubMed'  # For the CoauthorCS dataset
+dataset = Planetoid(root='/tmp/PubMed', name='PubMed')
 class MPNNLayer(MessagePassing):
     def __init__(self, in_channels, out_channels):
         super(MPNNLayer, self).__init__(aggr='mean')  # 'mean' aggregation.

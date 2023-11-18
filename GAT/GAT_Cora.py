@@ -6,7 +6,7 @@ import torch.nn.functional as F
 
 from torch_geometric.data import Data
 from torch_geometric.nn import GATConv
-from torch_geometric.datasets import Planetoid, Coauther, Reddit
+from torch_geometric.datasets import Planetoid
 import torch_geometric.transforms as T
 
 import warnings

@@ -6,7 +6,7 @@ import torch.nn.functional as F
 
 from torch_geometric.data import Data
 from torch_geometric.nn import GATConv
-from torch_geometric.datasets import Planetoid, Coauthor, Reddit
+from torch_geometric.datasets import Yelp
 import torch_geometric.transforms as T
 
 import warnings
@@ -18,8 +18,8 @@ torch.manual_seed(2020)
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 # Dataset used Cora
-name_data = 'CS'  # For the CoauthorCS dataset
-dataset = Coauthor(root='/tmp/Coauthor' + name_data, name=name_data)
+name_data = 'Yelp'
+dataset = Yelp(root='/tmp/' + name_data)
 dataset.transform = T.NormalizeFeatures()
 
 print(f"Number of Classes in {name_data}:", dataset.num_classes)
@@ -68,7 +68,6 @@ for epoch in range(1000):
     if epoch%200 == 0:
         print(loss)
         torch.save(model.state_dict(), f'model_epoch_{epoch}_{name_data}.pth')
-
 # Evaluation
 model.eval()
 _, pred = model(data).max(dim=1)
