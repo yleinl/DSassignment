@@ -5,13 +5,11 @@ import torch.nn.functional as F
 from torch_geometric.nn import MessagePassing
 from torch_geometric.utils import add_self_loops, degree
 from torch_geometric.datasets import Planetoid
-
+import torch.distributed
 
 #### Loading the Dataset ####
 name_data = 'Cora'
 dataset = Planetoid(root= '/tmp/' + name_data, name = name_data)
-
-
 #### The Graph Convolution Layer ####
 class GraphConvolution(MessagePassing):
     def __init__(self, in_channels, out_channels,bias=True, **kwargs):
@@ -38,13 +36,16 @@ class Net(torch.nn.Module):
     def __init__(self,nfeat, nhid, nclass, dropout):
         super(Net, self).__init__()
         self.conv1 = GraphConvolution(nfeat, nhid)
+
         self.conv2 = GraphConvolution(nhid, nclass)
+
         self.dropout=dropout
 
     def forward(self, data):
         x, edge_index = data.x, data.edge_index
 
         x = self.conv1(x, edge_index)
+
         x = F.relu(x)
         x = F.dropout(x, self.dropout, training=self.training)
         x = self.conv2(x, edge_index)
@@ -62,20 +63,20 @@ dropout=0.5
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 model = Net(nfeat, nhid, nclass, dropout).to(device)
 data = dataset[0].to(device)
-optimizer = torch.optim.Adam(model.parameters(), lr=0.01, weight_decay=5e-4)
-
-model.train()
-for epoch in range(1000):
-    optimizer.zero_grad()
-    out = model(data)
-    loss = F.nll_loss(out[data.train_mask], data.y[data.train_mask])
-    loss.backward()
-    optimizer.step()
-    if (epoch+1)%200 == 0:
-        print(loss)
-        torch.save(model.state_dict(), f'model_epoch_{epoch+1}_{name_data}.pth')
-# model.load_state_dict(torch.load('model_epoch_1000_Cora.pth'))
+# optimizer = torch.optim.Adam(model.parameters(), lr=0.01, weight_decay=5e-4)
+# model.train()
+# for epoch in range(1000):
+#     optimizer.zero_grad()
+#     out = model(data)
+#     loss = F.nll_loss(out[data.train_mask], data.y[data.train_mask])
+#     loss.backward()
+#     optimizer.step()
+#     if (epoch+1)%200 == 0:
+#         print(loss)
+#         torch.save(model.state_dict(), f'model_epoch_{epoch+1}_{name_data}.pth')
+model.load_state_dict(torch.load('model_epoch_1000_Cora.pth'))
 model.eval()
+
 _, pred = model(data).max(dim=1)
 correct = float (pred[data.test_mask].eq(data.y[data.test_mask]).sum().item())
 acc = correct / data.test_mask.sum().item()

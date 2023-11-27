@@ -12,33 +12,6 @@ from torch.nn.parallel import DistributedDataParallel
 name_data = 'Cora'
 dataset = Planetoid(root= '/tmp/' + name_data, name = name_data)
 
-def partition_data(dataset, num_partitions):
-    # 基本的数据划分
-    data = dataset[0]
-    num_nodes = data.num_nodes
-    partition_size = num_nodes // num_partitions
-
-    partitions = []
-    for i in range(num_partitions):
-        start_idx = i * partition_size
-        end_idx = (i + 1) * partition_size if i != num_partitions - 1 else num_nodes
-
-        partition_nodes = torch.arange(start_idx, end_idx, dtype=torch.long)
-
-        _, edge_indices = data.edge_index[:, ((data.edge_index[0] >= start_idx) & (data.edge_index[0] < end_idx))].sort(1)
-        partition_edges = data.edge_index[:, edge_indices]
-
-        partition_data = data.clone()
-        partition_data.x = data.x[partition_nodes]
-        partition_data.edge_index = partition_edges
-
-        partitions.append(partition_data)
-
-    return partitions
-
-dataset_partitioned = partition_data(dataset, 3)[0]
-dataset_partitioned.num_classes = dataset.num_classes
-
 
 #### The Graph Convolution Layer ####
 class GraphConvolution(MessagePassing):
