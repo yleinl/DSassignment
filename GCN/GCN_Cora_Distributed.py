@@ -7,7 +7,6 @@ import os
 from torch_geometric.datasets import Planetoid
 
 import GCN_Cora
-
 def partition_data(dataset, num_partitions):
     data = dataset[0]
     num_nodes = data.num_nodes
