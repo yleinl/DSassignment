@@ -47,6 +47,50 @@ def partition_data(dataset, num_partitions):
     return partitions
 
 
+def partition_data(dataset, num_partitions):
+    data = dataset[0]
+    num_nodes = data.num_nodes
+    partition_size = num_nodes // num_partitions
+
+    partitions = []
+    for i in range(num_partitions):
+        # 分区内拥有的节点范围
+        start_idx = i * partition_size
+        end_idx = (i + 1) * partition_size if i != num_partitions - 1 else num_nodes
+
+        # 分区内拥有的节点
+        owned_nodes = torch.arange(start_idx, end_idx, dtype=torch.long)
+        owned_mask = torch.zeros(num_nodes, dtype=torch.bool)
+        owned_mask[owned_nodes] = True
+
+        # 荣誉节点
+        edge_index = data.edge_index
+        connected_nodes = torch.unique(edge_index[:, owned_mask[edge_index[0]] | owned_mask[edge_index[1]]])
+
+        node_mapping = {node.item(): idx for idx, node in enumerate(connected_nodes)}
+
+        remapped_edge_index = torch.stack([
+            torch.tensor([node_mapping[node.item()] for node in edge_index[0] if node.item() in connected_nodes]),
+            torch.tensor([node_mapping[node.item()] for node in edge_index[1] if node.item() in connected_nodes])
+        ], dim=0)
+
+        # 拷贝原来的数据特征
+        partition_data = data.clone()
+        partition_data.x = data.x[connected_nodes]
+        partition_data.edge_index = remapped_edge_index
+        partition_data.train_mask = data.train_mask[connected_nodes]
+        partition_data.val_mask = data.val_mask[connected_nodes]
+        partition_data.test_mask = data.test_mask[connected_nodes]
+        partition_data.y = data.y[connected_nodes]
+        partition_data.num_classes = dataset.num_classes
+
+        # 标记拥有的节点和冗余节点
+        partition_data.owned_nodes_mask = owned_mask[connected_nodes]
+        partition_data.redundant_nodes_mask = ~owned_mask[connected_nodes]
+
+        partitions.append(partition_data)
+
+    return partitions
 
 def send_object(obj, dst):
     buffer = pickle.dumps(obj)
