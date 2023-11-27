@@ -69,6 +69,8 @@ def recv_object(src):
     obj = pickle.loads(buffer.numpy().tobytes())
     return obj
 
+
+
 def main(rank, world_size):
     dist.init_process_group("gloo", rank=rank, world_size=world_size)
     if rank == 0:
@@ -76,7 +78,6 @@ def main(rank, world_size):
         dataset = Planetoid(root= '/tmp/' + name_data, name = name_data)
         partitions = partition_data(dataset, world_size-1)
         for dst_rank in range(1, world_size):
-            # print("dst_rank", dst_rank)
             send_object(partitions[dst_rank-1], dst=dst_rank)
     else:
         dataset = recv_object(src=0)
@@ -86,19 +87,16 @@ def main(rank, world_size):
         dropout = 0.5
         device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         model = GCN_Cora.Net(nfeat, nhid, nclass, dropout).to(device)
-        # data = dataset[0].to(device)
         data = dataset.to(device)
         model.load_state_dict(torch.load('model_epoch_1000_Cora.pth'))
         model.eval()
 
         _, pred = model(data).max(dim=1)
-        correct = float (pred[data.test_mask].eq(data.y[data.test_mask]).sum().item())
+        correct = float(pred[data.test_mask].eq(data.y[data.test_mask]).sum().item())
         acc = correct / data.test_mask.sum().item()
         print('Accuracy: {:.4f}'.format(acc))
 
-
-
 if __name__ == "__main__":
-    world_size = 3
     rank = int(os.environ['RANK'])
+    world_size = int(os.environ['WORLD_SIZE'])
     main(rank, world_size)
