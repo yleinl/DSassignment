@@ -72,15 +72,19 @@ def recv_object(src):
 
 
 def main(rank, world_size):
+    print(rank, world_size)
     dist.init_process_group("gloo", rank=rank, world_size=world_size)
+    print("Hello, I am ", rank)
     if rank == 0:
         name_data = 'Cora'
         dataset = Planetoid(root= '/tmp/' + name_data, name = name_data)
         partitions = partition_data(dataset, world_size-1)
         for dst_rank in range(1, world_size):
             send_object(partitions[dst_rank-1], dst=dst_rank)
+            print("send", dst_rank)
     else:
         dataset = recv_object(src=0)
+        print("received")
         nfeat = dataset.num_node_features
         nhid = 16
         nclass = dataset.num_classes
@@ -97,6 +101,6 @@ def main(rank, world_size):
         print('Accuracy: {:.4f}'.format(acc))
 
 if __name__ == "__main__":
-    rank = int(os.environ['RANK'])
-    world_size = int(os.environ['WORLD_SIZE'])
+    rank = int(os.environ['SLURM_NODEID'])
+    world_size = int(os.environ['SLURM_NTASKS'])
     main(rank, world_size)
