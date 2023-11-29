@@ -6,8 +6,7 @@ import os
 
 from torch_geometric.datasets import Planetoid
 
-import GCN_Cora
-
+from models.GCN import GCNNet
 def partition_data(dataset, num_partitions):
     data = dataset[0]
     num_nodes = data.num_nodes
@@ -85,7 +84,7 @@ def main(rank, world_size):
         nclass = dataset.num_classes
         dropout = 0.5
         device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-        model = GCN_Cora.Net(nfeat, nhid, nclass, dropout).to(device)
+        model = GCNNet(nfeat, nhid, nclass, dropout).to(device)
         # data = dataset[0].to(device)
         data = dataset.to(device)
         model.load_state_dict(torch.load('model_epoch_1000_Cora.pth'))
