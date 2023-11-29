@@ -5,7 +5,8 @@ import torch.nn.functional as F
 from torch_geometric.nn import MessagePassing
 from torch_geometric.utils import add_self_loops, degree
 from torch_geometric.datasets import Planetoid
-import torch.distributed
+import torch.distributed as dist
+import os
 
 #### Loading the Dataset ####
 name_data = 'Cora'
@@ -44,6 +45,18 @@ class Net(torch.nn.Module):
     def forward(self, data):
         x, edge_index = data.x, data.edge_index
 
+        req = None
+        if rank == 0:
+            # Send the tensor to process 1
+            req = dist.isend(tensor = x, dst = 1)
+            print('Rank 0 started sending')
+        else:
+            # Receive tensor from process 0
+            req = dist.irecv(tensor = x, src = 0)
+            print('Rank 1 started receiving')
+        req.wait()
+        print('Rank ', rank, ' has data ', x[0])
+
         x = self.conv1(x, edge_index)
 
         x = F.relu(x)
@@ -52,28 +65,42 @@ class Net(torch.nn.Module):
 
         return F.log_softmax(x, dim=1)
 
+def get_master_addr(node_list):
+    return '10.141.0.{}'.format(int(node_list[5:8]))
+
+rank = int(os.environ['SLURM_PROCID'])
+local_rank = int(os.environ['SLURM_LOCALID'])
+world_size = int(os.environ['SLURM_NTASKS'])
+
+host_addr = get_master_addr(os.environ['SLURM_STEP_NODELIST'])
+port = 1234
+host_addr_full = 'tcp://' + host_addr + ':' + str(port)
+torch.distributed.init_process_group(backend = "gloo", init_method = host_addr_full, rank = rank, world_size = world_size)
 
 nfeat=dataset.num_node_features
 nhid=16
 nclass=dataset.num_classes
 dropout=0.5
 
-
 #### Training ####
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 model = Net(nfeat, nhid, nclass, dropout).to(device)
 data = dataset[0].to(device)
-# optimizer = torch.optim.Adam(model.parameters(), lr=0.01, weight_decay=5e-4)
-# model.train()
-# for epoch in range(1000):
-#     optimizer.zero_grad()
-#     out = model(data)
-#     loss = F.nll_loss(out[data.train_mask], data.y[data.train_mask])
-#     loss.backward()
-#     optimizer.step()
-#     if (epoch+1)%200 == 0:
-#         print(loss)
-#         torch.save(model.state_dict(), f'model_epoch_{epoch+1}_{name_data}.pth')
+optimizer = torch.optim.Adam(model.parameters(), lr=0.01, weight_decay=5e-4)
+
+'''
+model.train()
+for epoch in range(1000):
+    optimizer.zero_grad()
+    out = model(data)
+    loss = F.nll_loss(out[data.train_mask], data.y[data.train_mask])
+    loss.backward()
+    optimizer.step()
+    if (epoch+1)%200 == 0:
+        print(loss)
+        torch.save(model.state_dict(), f'model_epoch_{epoch+1}_{name_data}.pth')
+'''
+
 model.load_state_dict(torch.load('model_epoch_1000_Cora.pth'))
 model.eval()
 
