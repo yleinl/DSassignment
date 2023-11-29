@@ -6,7 +6,7 @@ import os
 
 from torch_geometric.datasets import Planetoid
 
-from models.GCN import GCNNet
+from GCNNet import GCNNet
 def partition_data(dataset, num_partitions):
     data = dataset[0]
     num_nodes = data.num_nodes
