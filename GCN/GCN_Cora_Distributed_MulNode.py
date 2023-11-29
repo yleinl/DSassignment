@@ -74,7 +74,6 @@ def get_master_addr(node_list):
 
 def main(rank, world_size, host_addr_full):
     torch.distributed.init_process_group(backend="gloo", init_method=host_addr_full, rank=rank, world_size=world_size)
-    dist.init_process_group("gloo", rank=rank, world_size=world_size)
     print("Hello, I am ", rank)
     if rank == 0:
         name_data = 'Cora'

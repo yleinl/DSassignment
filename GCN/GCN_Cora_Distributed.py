@@ -69,7 +69,7 @@ def recv_object(src):
     return obj
 
 def main(rank, world_size):
-    dist.init_process_group("gloo", rank=rank, world_size=world_size)
+    torch.distributed.init_process_group("gloo", rank=rank, world_size=world_size)
     if rank == 0:
         name_data = 'Cora'
         dataset = Planetoid(root= '/tmp/' + name_data, name = name_data)
