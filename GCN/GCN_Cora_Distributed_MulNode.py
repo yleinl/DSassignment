@@ -68,38 +68,6 @@ def recv_object(src):
     obj = pickle.loads(buffer.numpy().tobytes())
     return obj
 
-
-def get_master_addr(node_list):
-    return '10.141.0.{}'.format(int(node_list[5:8]))
-
-def main(rank, world_size, host_addr_full):
-    torch.distributed.init_process_group(backend="gloo", init_method=host_addr_full, rank=rank, world_size=world_size)
-    print("Hello, I am ", rank)
-    if rank == 0:
-        name_data = 'Cora'
-        dataset = Planetoid(root= '/tmp/' + name_data, name = name_data)
-        partitions = partition_data(dataset, world_size-1)
-        for dst_rank in range(1, world_size):
-            send_object(partitions[dst_rank-1], dst=dst_rank)
-            print("send", dst_rank)
-    else:
-        dataset = recv_object(src=0)
-        print("received")
-        nfeat = dataset.num_node_features
-        nhid = 16
-        nclass = dataset.num_classes
-        dropout = 0.5
-        device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-        model = Net(nfeat, nhid, nclass, dropout).to(device)
-        data = dataset.to(device)
-        model.load_state_dict(torch.load('model_epoch_1000_Cora.pth'))
-        model.eval()
-
-        _, pred = model(data).max(dim=1)
-        correct = float(pred[data.test_mask].eq(data.y[data.test_mask]).sum().item())
-        acc = correct / data.test_mask.sum().item()
-        print('Accuracy: {:.4f}'.format(acc))
-
 class GraphConvolution(MessagePassing):
     def __init__(self, in_channels, out_channels,bias=True, **kwargs):
         super(GraphConvolution, self).__init__(aggr='add', **kwargs)
@@ -134,6 +102,7 @@ class Net(torch.nn.Module):
         x, edge_index = data.x, data.edge_index
 
         req = None
+        # print('model rank {}'.format(rank))
         if rank == 0:
             # Send the tensor to process 1
             req = dist.isend(tensor = x, dst = 1)
@@ -152,6 +121,41 @@ class Net(torch.nn.Module):
         x = self.conv2(x, edge_index)
 
         return F.log_softmax(x, dim=1)
+
+def get_master_addr(node_list):
+    return '10.141.0.{}'.format(int(node_list[5:8]))
+
+def main(rank, world_size, host_addr_full):
+    torch.distributed.init_process_group(backend="gloo", init_method=host_addr_full, rank=rank, world_size=world_size)
+    print("Hello, I am ", rank)
+    if rank == 0:
+        name_data = 'Cora'
+        dataset = Planetoid(root= '/tmp/' + name_data, name = name_data)
+        partitions = partition_data(dataset, world_size-1)
+        for dst_rank in range(1, world_size):
+            send_object(partitions[dst_rank-1], dst=dst_rank)
+            print("data sent to node {}".format(dst_rank))
+    else:
+        dataset = recv_object(src=0)
+        print("data received on node {} from node 0".format(rank))
+        
+    nfeat = dataset.num_node_features
+    nhid = 16
+    nclass = dataset.num_classes
+    dropout = 0.5
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    model = Net(nfeat, nhid, nclass, dropout).to(device)
+    if('datasets' in str(type(dataset))):
+        dataset = dataset[0]
+    data = dataset.to(device)
+    model.load_state_dict(torch.load('model_epoch_1000_Cora.pth'))
+    model.eval()
+    
+    print('model rank {}'.format(rank))
+    _, pred = model(data).max(dim=1)
+    correct = float(pred[data.test_mask].eq(data.y[data.test_mask]).sum().item())
+    acc = correct / data.test_mask.sum().item()
+    print('Accuracy: {:.4f}'.format(acc))
 
 if __name__ == "__main__":
     rank = int(os.environ['SLURM_PROCID'])
