@@ -208,6 +208,7 @@ def main(rank, world_size):
 
     else :
         dataset = recv_object(src=0)
+        print(rank, dataset.x.shape)
         nfeat = dataset.num_node_features
         nhid = 16
         nclass = dataset.num_classes

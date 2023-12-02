@@ -62,7 +62,7 @@ def partition_data_louvain(dataset, num_partitions):
     partition = community_louvain.best_partition(G)
     num_nodes = data.num_nodes
 
-    # 尝试均衡每个分区中的节点数
+    # 平均每个分区节点数
     cluster_nodes = [[] for _ in range(num_partitions)]
     for node, cluster_id in partition.items():
         cluster_nodes[cluster_id % num_partitions].append(node)
