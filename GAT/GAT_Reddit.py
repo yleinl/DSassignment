@@ -11,7 +11,7 @@ import torch_geometric.transforms as T
 
 import warnings
 
-from GCN.sampler import sample_data
+from sampler import sample_data
 
 warnings.filterwarnings("ignore")
 

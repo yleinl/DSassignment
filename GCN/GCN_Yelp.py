@@ -6,7 +6,7 @@ from torch_geometric.nn import MessagePassing
 from torch_geometric.utils import add_self_loops, degree
 from torch_geometric.datasets import Yelp
 
-from GCN.sampler import sample_data
+from sampler import sample_data
 
 #### Loading the Dataset ####
 name_data = 'Yelp'
