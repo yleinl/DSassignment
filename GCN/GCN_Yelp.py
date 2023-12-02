@@ -6,10 +6,12 @@ from torch_geometric.nn import MessagePassing
 from torch_geometric.utils import add_self_loops, degree
 from torch_geometric.datasets import Yelp
 
+from GCN.sampler import sample_data
 
 #### Loading the Dataset ####
 name_data = 'Yelp'
 dataset = Yelp(root='/tmp/' + name_data)
+dataset = sample_data(dataset, sample_fraction=0.6)
 
 
 #### The Graph Convolution Layer ####
@@ -61,7 +63,7 @@ dropout=0.5
 #### Training ####
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 model = Net(nfeat, nhid, nclass, dropout).to(device)
-data = dataset[0].to(device)
+data = dataset.to(device)
 optimizer = torch.optim.Adam(model.parameters(), lr=0.01, weight_decay=5e-4)
 
 model.train()

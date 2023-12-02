@@ -10,6 +10,9 @@ from torch_geometric.datasets import Yelp
 import torch_geometric.transforms as T
 
 import warnings
+
+from GCN.sampler import sample_data
+
 warnings.filterwarnings("ignore")
 
 # Seed for reproducible numbers
@@ -21,6 +24,7 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 name_data = 'Yelp'
 dataset = Yelp(root='/tmp/' + name_data)
 dataset.transform = T.NormalizeFeatures()
+dataset = sample_data(dataset, sample_fraction=0.6)
 
 print(f"Number of Classes in {name_data}:", dataset.num_classes)
 print(f"Number of Node Features in {name_data}:", dataset.num_node_features)
@@ -51,7 +55,7 @@ class GAT(torch.nn.Module):
 
 # Train
 model = GAT().to(device)
-data = dataset[0].to(device)
+data = dataset.to(device)
 
 # Adam Optimizer
 optimizer = torch.optim.Adam(model.parameters(), lr=0.005, weight_decay=5e-4)

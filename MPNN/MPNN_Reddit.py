@@ -4,8 +4,11 @@ from torch_geometric.nn import MessagePassing
 from torch_geometric.utils import add_self_loops, degree
 from torch_geometric.datasets import Reddit
 
+from GCN.sampler import sample_data
+
 name_data = 'Reddit'
 dataset = Reddit(root='/tmp/Reddit')
+dataset = sample_data(dataset, sample_fraction=0.6)
 class MPNNLayer(MessagePassing):
     def __init__(self, in_channels, out_channels):
         super(MPNNLayer, self).__init__(aggr='mean')  # 'mean' aggregation.
@@ -41,7 +44,7 @@ dropout = 0.5
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 model = MPNNNet(nfeat, nhid, nclass, dropout).to(device)
-data = dataset[0].to(device)
+data = dataset.to(device)
 optimizer = torch.optim.Adam(model.parameters(), lr=0.01, weight_decay=5e-4)
 model.train()
 for epoch in range(1000):
