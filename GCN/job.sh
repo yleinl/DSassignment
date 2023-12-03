@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #SBATCH --job-name=gcn_distributed
-#SBATCH --nodes=2
+#SBATCH --nodes=3
 #SBATCH --ntasks-per-node=1
 #SBATCH --time=01:00:00
 
