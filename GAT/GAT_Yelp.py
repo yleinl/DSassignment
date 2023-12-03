@@ -1,13 +1,8 @@
-import numpy as np
 import torch
-import torch.nn as nn
 import torch.nn.functional as F
 
-
-from torch_geometric.data import Data
 from torch_geometric.nn import GATConv
 from torch_geometric.datasets import Yelp
-import torch_geometric.transforms as T
 
 import warnings
 
@@ -23,7 +18,6 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 # Dataset used Cora
 name_data = 'Yelp'
 dataset = Yelp(root='/tmp/' + name_data)
-dataset.transform = T.NormalizeFeatures()
 dataset = sample_data(dataset, sample_fraction=0.6)
 
 print(f"Number of Classes in {name_data}:", dataset.num_classes)
@@ -58,23 +52,24 @@ model = GAT().to(device)
 data = dataset.to(device)
 
 # Adam Optimizer
-optimizer = torch.optim.Adam(model.parameters(), lr=0.005, weight_decay=5e-4)
+# optimizer = torch.optim.Adam(model.parameters(), lr=0.005, weight_decay=5e-4)
+# loss_fn = torch.nn.BCEWithLogitsLoss()  # Binary Cross Entropy Loss for multi-label classification
 
 # Training Loop
-model.train()
-for epoch in range(1000):
-    model.train()
-    optimizer.zero_grad()
-    out = model(data)
-    loss = F.nll_loss(out[data.train_mask], data.y[data.train_mask])
-    loss.backward()
-    optimizer.step()
-    if (epoch+1)%200 == 0:
-        print(loss)
-        torch.save(model.state_dict(), f'model_epoch_{epoch+1}_{name_data}.pth')
+# model.train()
+# for epoch in range(3000):
+#     optimizer.zero_grad()
+#     out = model(data)
+#     loss = loss_fn(out[data.train_mask], data.y[data.train_mask].to(torch.float))
+#     loss.backward()
+#     optimizer.step()
+#     if (epoch+1)%1000 == 0:
+#         print(loss)
+#         torch.save(model.state_dict(), f'model_epoch_{epoch+1}_{name_data}.pth')
+model.load_state_dict(torch.load('model_epoch_3000_Yelp.pth'))
 # Evaluation
 model.eval()
-_, pred = model(data).max(dim=1)
-correct = float (pred[data.test_mask].eq(data.y[data.test_mask]).sum().item())
-acc = correct / data.test_mask.sum().item()
-print('Accuracy: {:.4f}'.format(acc))
+pred = torch.sigmoid(model(data)) > 0.5
+correct = pred[data.test_mask].eq(data.y[data.test_mask].to(torch.bool)).sum().item()
+accuracy = correct / (data.test_mask.sum().item() * data.y.size(1))
+print('Accuracy: {:.4f}'.format(accuracy))

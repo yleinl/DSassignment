@@ -45,17 +45,19 @@ dropout = 0.5
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 model = MPNNNet(nfeat, nhid, nclass, dropout).to(device)
 data = dataset.to(device)
-optimizer = torch.optim.Adam(model.parameters(), lr=0.01, weight_decay=5e-4)
-model.train()
-for epoch in range(1000):
-    optimizer.zero_grad()
-    out = model(data)
-    loss = F.nll_loss(out[data.train_mask], data.y[data.train_mask])
-    loss.backward()
-    optimizer.step()
-    if (epoch+1)%200 == 0:
-        print(loss)
-        torch.save(model.state_dict(), f'model_epoch_{epoch+1}_{name_data}.pth')
+# optimizer = torch.optim.Adam(model.parameters(), lr=0.01, weight_decay=5e-4)
+# model.train()
+# for epoch in range(3000):
+#     optimizer.zero_grad()
+#     out = model(data)
+#     loss = F.nll_loss(out[data.train_mask], data.y[data.train_mask])
+#     loss.backward()
+#     optimizer.step()
+#     if (epoch+1)%1000 == 0:
+#         print(loss)
+#         torch.save(model.state_dict(), f'model_epoch_{epoch+1}_{name_data}.pth')
+
+model.load_state_dict(torch.load('model_epoch_3000_Reddit.pth'))
 model.eval()
 _, pred = model(data).max(dim=1)
 correct = pred[data.test_mask].eq(data.y[data.test_mask]).sum().item()

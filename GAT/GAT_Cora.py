@@ -24,6 +24,7 @@ dataset.transform = T.NormalizeFeatures()
 
 print(f"Number of Classes in {name_data}:", dataset.num_classes)
 print(f"Number of Node Features in {name_data}:", dataset.num_node_features)
+print(dataset.y)
 
 
 # Model Definition
