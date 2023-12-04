@@ -69,11 +69,11 @@ def partition_data(dataset, num_partitions):
 
         edge_index = data.edge_index
         connected_edges = owned_mask[edge_index[0]] | owned_mask[edge_index[1]]
-
-        # 分区内拥有的节点
+        new_index = len(owned_nodes)
+        external_node_mapping = {}
         remapped_edge_index = edge_index[:, connected_edges]
-        # remapped_edge_index[0, :] = torch.tensor([owned_nodes.tolist().index(node.item()) if node.item() in owned_nodes else -1 for node in remapped_edge_index[0]])
-        # remapped_edge_index[1, :] = torch.tensor([owned_nodes.tolist().index(node.item()) if node.item() in owned_nodes else -1 for node in remapped_edge_index[1]])
+        remapped_edge_index[0, :] = torch.tensor([owned_nodes.tolist().index(node.item()) if node.item() in owned_nodes else external_node_mapping.setdefault(node.item(), new_index + len(external_node_mapping)) for node in remapped_edge_index[0]])
+        remapped_edge_index[1, :] = torch.tensor([owned_nodes.tolist().index(node.item()) if node.item() in owned_nodes else external_node_mapping.setdefault(node.item(), new_index + len(external_node_mapping)) for node in remapped_edge_index[1]])
 
         # 拷贝原来的数据特征
         partition_data = data.clone()
@@ -115,12 +115,8 @@ def partition_data_louvain(dataset, num_partitions):
 
     partitions = []
     for i in range(num_partitions):
-        # 分区内拥有的节点范围
-        start_idx = i * avg_size
-        end_idx = (i + 1) * avg_size if i != num_partitions - 1 else num_nodes
+        owned_nodes = torch.tensor(cluster_nodes[i], dtype=torch.long)
 
-        # 分区内拥有的节点
-        owned_nodes = torch.arange(start_idx, end_idx, dtype=torch.long)
         owned_mask = torch.zeros(num_nodes, dtype=torch.bool)
         owned_mask[owned_nodes] = True
 
@@ -128,10 +124,11 @@ def partition_data_louvain(dataset, num_partitions):
         connected_edges = owned_mask[edge_index[0]] | owned_mask[edge_index[1]]
 
         # 分区内拥有的节点
+        new_index = len(owned_nodes)
+        external_node_mapping = {}
         remapped_edge_index = edge_index[:, connected_edges]
-        # remapped_edge_index[0, :] = torch.tensor([owned_nodes.tolist().index(node.item()) if node.item() in owned_nodes else -1 for node in remapped_edge_index[0]])
-        # remapped_edge_index[1, :] = torch.tensor([owned_nodes.tolist().index(node.item()) if node.item() in owned_nodes else -1 for node in remapped_edge_index[1]])
-
+        remapped_edge_index[0, :] = torch.tensor([owned_nodes.tolist().index(node.item()) if node.item() in owned_nodes else external_node_mapping.setdefault(node.item(), new_index + len(external_node_mapping)) for node in remapped_edge_index[0]])
+        remapped_edge_index[1, :] = torch.tensor([owned_nodes.tolist().index(node.item()) if node.item() in owned_nodes else external_node_mapping.setdefault(node.item(), new_index + len(external_node_mapping)) for node in remapped_edge_index[1]])
         # 拷贝原来的数据特征
         partition_data = data.clone()
         partition_data.x = data.x[owned_nodes]
