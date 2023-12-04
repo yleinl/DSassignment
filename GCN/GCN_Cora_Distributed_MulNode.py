@@ -6,7 +6,7 @@ from torch_geometric.datasets import Planetoid
 from torch_geometric.nn import MessagePassing
 from torch_geometric.utils import degree, add_self_loops
 import torch.nn.functional as F
-from utils import recv_object, send_object, partition_data
+from utils import recv_object, send_object, partition_data_louvain as partition_data
 
 class GraphConvolution(MessagePassing):
     def __init__(self, in_channels, out_channels,bias=True, **kwargs):

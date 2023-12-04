@@ -12,7 +12,7 @@ import community as community_louvain
 from torch_geometric.datasets import Planetoid
 from torch_geometric.utils import to_networkx
 import utils
-from utils import recv_object, send_object, partition_data
+from utils import recv_object, send_object, partition_data, partition_data_louvain
 
 
 from GCNNet import GCNNet
@@ -47,15 +47,15 @@ def main(rank, world_size):
         dataset = Planetoid(root= '/tmp/' + name_data, name = name_data)
         print(dataset[0].num_nodes)
         partitions = partition_data_louvain(dataset, world_size-1)
-        for i, partition in enumerate(partitions):
-            owned_nodes_count = torch.sum(partition.owned_nodes_mask).item()
-            redundant_nodes_count = torch.sum(partition.redundant_nodes_mask).item()
-            print(f"Partition {i} has {[partition.num_nodes]} total nodes.")
-            print(f"Partition {i} has {owned_nodes_count} owned nodes.")
-            print(f"Partition {i} has {redundant_nodes_count} redundant nodes.")
-            edge_index = partition.edge_index
-            num_edges = edge_index.size(1) // 2
-            print(f"Partition {i} has {num_edges} edges.")
+        # for i, partition in enumerate(partitions):
+        #     owned_nodes_count = torch.sum(partition.owned_nodes_mask).item()
+        #     redundant_nodes_count = torch.sum(partition.redundant_nodes_mask).item()
+        #     print(f"Partition {i} has {[partition.num_nodes]} total nodes.")
+        #     print(f"Partition {i} has {owned_nodes_count} owned nodes.")
+        #     print(f"Partition {i} has {redundant_nodes_count} redundant nodes.")
+        #     edge_index = partition.edge_index
+        #     num_edges = edge_index.size(1) // 2
+        #     print(f"Partition {i} has {num_edges} edges.")
         for dst_rank in range(1, world_size):
             send_object(partitions[dst_rank-1], dst=dst_rank)
         while True:
@@ -90,22 +90,23 @@ def main(rank, world_size):
 
     else :
         dataset = recv_object(src=0)
-        print(rank, dataset.x.shape)
-        nfeat = dataset.num_node_features
-        nhid = 16
-        nclass = dataset.num_classes
-        dropout = 0.5
-        device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-        model = GCNNet(nfeat, nhid, nclass, dropout).to(device)
-        # failure_simulation(rank, 0.2)
-        data = dataset.to(device)
-        model.load_state_dict(torch.load('model_epoch_1000_Cora.pth'))
-        model.eval()
-
-        _, pred = model(data).max(dim=1)
-        correct = float (pred[data.test_mask].eq(data.y[data.test_mask]).sum().item())
-        acc = correct / data.test_mask.sum().item()
-        print('Accuracy: {:.4f}'.format(acc))
+        print(dataset.edge_index)
+        # print(rank, dataset.x.shape)
+        # nfeat = dataset.num_node_features
+        # nhid = 16
+        # nclass = dataset.num_classes
+        # dropout = 0.5
+        # device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+        # model = GCNNet(nfeat, nhid, nclass, dropout).to(device)
+        # # failure_simulation(rank, 0.2)
+        # data = dataset.to(device)
+        # model.load_state_dict(torch.load('model_epoch_1000_Cora.pth'))
+        # model.eval()
+        #
+        # _, pred = model(data).max(dim=1)
+        # correct = float (pred[data.test_mask].eq(data.y[data.test_mask]).sum().item())
+        # acc = correct / data.test_mask.sum().item()
+        # print('Accuracy: {:.4f}'.format(acc))
 
 
 
