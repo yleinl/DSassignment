@@ -286,3 +286,23 @@ def recv_object(src):
     dist.recv(buffer, src=src)
     obj = pickle.loads(buffer.numpy().tobytes())
     return obj
+
+def isend_object(obj, dst):
+    buffer = pickle.dumps(obj)
+    buffer_tensor = torch.ByteTensor(list(buffer))
+    work_data = dist.isend(buffer_tensor, dst=dst)
+
+    return work_data
+
+def send_size_tensor(obj, dst):
+    buffer = pickle.dumps(obj)
+    buffer_tensor = torch.ByteTensor(list(buffer))
+    size_tensor = torch.tensor([buffer_tensor.numel()], dtype=torch.long)
+    dist.send(size_tensor, dst=dst)
+
+def irecv_object(src, size_tensor):
+
+    buffer_tensor = torch.empty((size_tensor.item(),), dtype=torch.uint8)
+    work_data = dist.irecv(buffer_tensor, src=src)
+
+    return work_data, buffer_tensor
