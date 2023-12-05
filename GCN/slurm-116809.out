@@ -1,0 +1,78 @@
+Hello, I am  2
+Hello, I am  1
+Hello, I am  0
+data sent to node 1
+data received on node 1 from node 0
+tensor([[0., 0., 0.,  ..., 0., 0., 0.],
+        [0., 0., 0.,  ..., 0., 0., 0.],
+        [0., 0., 0.,  ..., 0., 0., 0.],
+        ...,
+        [0., 0., 0.,  ..., 0., 0., 0.],
+        [0., 0., 0.,  ..., 0., 0., 0.],
+        [0., 0., 0.,  ..., 0., 0., 0.]]) torch.Size([1354, 1433])
+tensor([[   0,    0,    0,  ..., 2696, 2696, 2696],
+        [ 316,  961, 1308,  ...,   85,  298,  747]]) torch.Size([2, 5800])
+world size 3
+request nodes: 256 [1355, 1365, 1366, 1370, 1371, 1374, 1375, 1378, 1383, 1388, 1390, 1391, 1395, 1400, 1404, 1406, 1415, 1424, 1426, 1446, 1449, 1451, 1453, 1459, 1466, 1477, 1480, 1482, 1495, 1496, 1501, 1503, 1507, 1512, 1519, 1522, 1542, 1551, 1561, 1563, 1564, 1573, 1577, 1583, 1589, 1590, 1597, 1606, 1608, 1610, 1614, 1617, 1622, 1637, 1638, 1642, 1643, 1664, 1669, 1670, 1677, 1678, 1682, 1690, 1694, 1701, 1706, 1714, 1723, 1728, 1736, 1746, 1747, 1749, 1758, 1763, 1766, 1769, 1771, 1775, 1782, 1787, 1789, 1790, 1792, 1799, 1801, 1833, 1836, 1837, 1844, 1845, 1852, 1858, 1866, 1875, 1880, 1882, 1883, 1884, 1886, 1892, 1903, 1905, 1914, 1915, 1918, 1919, 1920, 1926, 1943, 1944, 1963, 1973, 1975, 1986, 1992, 1998, 2000, 2003, 2005, 2006, 2012, 2013, 2016, 2019, 2022, 2029, 2036, 2047, 2048, 2058, 2060, 2062, 2073, 2078, 2083, 2086, 2092, 2096, 2107, 2109, 2126, 2131, 2134, 2138, 2147, 2148, 2150, 2151, 2154, 2157, 2171, 2174, 2176, 2179, 2183, 2189, 2193, 2197, 2198, 2199, 2200, 2201, 2211, 2220, 2222, 2233, 2235, 2237, 2247, 2248, 2249, 2250, 2251, 2252, 2253, 2254, 2255, 2256, 2257, 2265, 2275, 2277, 2278, 2284, 2285, 2286, 2287, 2288, 2292, 2304, 2305, 2306, 2307, 2310, 2311, 2312, 2313, 2314, 2315, 2316, 2317, 2318, 2319, 2324, 2326, 2330, 2336, 2337, 2350, 2356, 2357, 2378, 2385, 2388, 2393, 2398, 2401, 2407, 2410, 2417, 2418, 2421, 2427, 2428, 2434, 2443, 2450, 2456, 2475, 2478, 2480, 2490, 2510, 2519, 2539, 2544, 2552, 2553, 2565, 2566, 2585, 2594, 2707, 2706, 2705, 2704, 2703, 2702, 2701, 2700, 2699, 2698, 2697, 2696]
+request nodes: 256 [1355, 1365, 1366, 1370, 1371, 1374, 1375, 1378, 1383, 1388, 1390, 1391, 1395, 1400, 1404, 1406, 1415, 1424, 1426, 1446, 1449, 1451, 1453, 1459, 1466, 1477, 1480, 1482, 1495, 1496, 1501, 1503, 1507, 1512, 1519, 1522, 1542, 1551, 1561, 1563, 1564, 1573, 1577, 1583, 1589, 1590, 1597, 1606, 1608, 1610, 1614, 1617, 1622, 1637, 1638, 1642, 1643, 1664, 1669, 1670, 1677, 1678, 1682, 1690, 1694, 1701, 1706, 1714, 1723, 1728, 1736, 1746, 1747, 1749, 1758, 1763, 1766, 1769, 1771, 1775, 1782, 1787, 1789, 1790, 1792, 1799, 1801, 1833, 1836, 1837, 1844, 1845, 1852, 1858, 1866, 1875, 1880, 1882, 1883, 1884, 1886, 1892, 1903, 1905, 1914, 1915, 1918, 1919, 1920, 1926, 1943, 1944, 1963, 1973, 1975, 1986, 1992, 1998, 2000, 2003, 2005, 2006, 2012, 2013, 2016, 2019, 2022, 2029, 2036, 2047, 2048, 2058, 2060, 2062, 2073, 2078, 2083, 2086, 2092, 2096, 2107, 2109, 2126, 2131, 2134, 2138, 2147, 2148, 2150, 2151, 2154, 2157, 2171, 2174, 2176, 2179, 2183, 2189, 2193, 2197, 2198, 2199, 2200, 2201, 2211, 2220, 2222, 2233, 2235, 2237, 2247, 2248, 2249, 2250, 2251, 2252, 2253, 2254, 2255, 2256, 2257, 2265, 2275, 2277, 2278, 2284, 2285, 2286, 2287, 2288, 2292, 2304, 2305, 2306, 2307, 2310, 2311, 2312, 2313, 2314, 2315, 2316, 2317, 2318, 2319, 2324, 2326, 2330, 2336, 2337, 2350, 2356, 2357, 2378, 2385, 2388, 2393, 2398, 2401, 2407, 2410, 2417, 2418, 2421, 2427, 2428, 2434, 2443, 2450, 2456, 2475, 2478, 2480, 2490, 2510, 2519, 2539, 2544, 2552, 2553, 2565, 2566, 2585, 2594, 2707, 2706, 2705, 2704, 2703, 2702, 2701, 2700, 2699, 2698, 2697, 2696]
+Traceback (most recent call last):
+  File "GCN_Cora_Distributed_MulNode.py", line 183, in <module>
+    main(rank, world_size, host_addr_full)
+  File "GCN_Cora_Distributed_MulNode.py", line 169, in main
+    _, pred = model(data).max(dim=1)
+  File "/home/dsys2352/miniconda3/envs/dist_GNN/lib/python3.6/site-packages/torch/nn/modules/module.py", line 889, in _call_impl
+    result = self.forward(*input, **kwargs)
+  File "GCN_Cora_Distributed_MulNode.py", line 95, in forward
+    if(self.rank == i or len(requested_nodes_list[i]) == 0):
+TypeError: object of type 'int' has no len()
+data sent to node 2
+data received on node 2 from node 0
+tensor([[0., 0., 0.,  ..., 0., 0., 0.],
+        [0., 0., 0.,  ..., 0., 0., 0.],
+        [0., 0., 0.,  ..., 0., 0., 0.],
+        ...,
+        [0., 0., 0.,  ..., 0., 0., 0.],
+        [0., 0., 0.,  ..., 0., 0., 0.],
+        [0., 0., 0.,  ..., 0., 0., 0.]]) torch.Size([1354, 1433])
+tensor([[1354, 1354, 1354,  ..., 2696, 2696, 2696],
+        [1355, 1683, 1685,  ...,  298,  747, 2697]]) torch.Size([2, 5534])
+world size 3
+request nodes: 226 [24, 29, 41, 42, 52, 53, 54, 68, 74, 76, 78, 81, 85, 88, 94, 101, 104, 106, 108, 112, 114, 118, 128, 145, 146, 149, 151, 163, 164, 167, 171, 173, 174, 195, 196, 200, 206, 211, 213, 214, 215, 217, 222, 224, 240, 255, 260, 267, 274, 283, 289, 294, 297, 298, 300, 303, 319, 320, 330, 346, 347, 351, 353, 362, 364, 365, 367, 370, 380, 382, 420, 426, 450, 476, 479, 488, 490, 495, 502, 516, 524, 531, 541, 547, 550, 553, 554, 562, 568, 575, 585, 586, 590, 600, 612, 614, 619, 622, 627, 628, 643, 645, 654, 655, 657, 663, 671, 683, 688, 694, 702, 706, 715, 718, 747, 752, 758, 760, 762, 765, 775, 777, 778, 780, 781, 789, 793, 795, 802, 805, 822, 826, 836, 840, 842, 843, 846, 855, 860, 861, 862, 863, 876, 880, 886, 887, 889, 894, 912, 919, 920, 925, 939, 946, 948, 950, 951, 952, 953, 954, 964, 974, 981, 983, 984, 985, 986, 989, 995, 1016, 1019, 1022, 1023, 1026, 1029, 1030, 1031, 1044, 1045, 1046, 1047, 1048, 1049, 1052, 1058, 1061, 1064, 1071, 1072, 1073, 1082, 1089, 1090, 1093, 1098, 1099, 1102, 1117, 1138, 1140, 1141, 1144, 1149, 1151, 1153, 1159, 1166, 1168, 1172, 1174, 1176, 1177, 1185, 1200, 1208, 1214, 1220, 1222, 1243, 1244, 1250, 1262, 1279, 1287, 1288, 1324]
+Traceback (most recent call last):
+  File "GCN_Cora_Distributed_MulNode.py", line 183, in <module>
+    main(rank, world_size, host_addr_full)
+  File "GCN_Cora_Distributed_MulNode.py", line 169, in main
+    _, pred = model(data).max(dim=1)
+  File "/home/dsys2352/miniconda3/envs/dist_GNN/lib/python3.6/site-packages/torch/nn/modules/module.py", line 889, in _call_impl
+    result = self.forward(*input, **kwargs)
+  File "GCN_Cora_Distributed_MulNode.py", line 95, in forward
+    if(self.rank == i or len(requested_nodes_list[i]) == 0):
+TypeError: object of type 'int' has no len()
+Traceback (most recent call last):
+  File "/home/dsys2352/miniconda3/envs/dist_GNN/lib/python3.6/runpy.py", line 193, in _run_module_as_main
+    "__main__", mod_spec)
+  File "/home/dsys2352/miniconda3/envs/dist_GNN/lib/python3.6/runpy.py", line 85, in _run_code
+    exec(code, run_globals)
+  File "/home/dsys2352/miniconda3/envs/dist_GNN/lib/python3.6/site-packages/torch/distributed/launch.py", line 340, in <module>
+    main()
+  File "/home/dsys2352/miniconda3/envs/dist_GNN/lib/python3.6/site-packages/torch/distributed/launch.py", line 326, in main
+    sigkill_handler(signal.SIGTERM, None)  # not coming back
+  File "/home/dsys2352/miniconda3/envs/dist_GNN/lib/python3.6/site-packages/torch/distributed/launch.py", line 301, in sigkill_handler
+    raise subprocess.CalledProcessError(returncode=last_return_code, cmd=cmd)
+subprocess.CalledProcessError: Command '['/home/dsys2352/miniconda3/envs/dist_GNN/bin/python', '-u', 'GCN_Cora_Distributed_MulNode.py']' returned non-zero exit status 1.
+Killing subprocess 1095534
+srun: error: node002: task 1: Exited with exit code 1
+Traceback (most recent call last):
+  File "/home/dsys2352/miniconda3/envs/dist_GNN/lib/python3.6/runpy.py", line 193, in _run_module_as_main
+    "__main__", mod_spec)
+  File "/home/dsys2352/miniconda3/envs/dist_GNN/lib/python3.6/runpy.py", line 85, in _run_code
+    exec(code, run_globals)
+  File "/home/dsys2352/miniconda3/envs/dist_GNN/lib/python3.6/site-packages/torch/distributed/launch.py", line 340, in <module>
+    main()
+  File "/home/dsys2352/miniconda3/envs/dist_GNN/lib/python3.6/site-packages/torch/distributed/launch.py", line 326, in main
+    sigkill_handler(signal.SIGTERM, None)  # not coming back
+  File "/home/dsys2352/miniconda3/envs/dist_GNN/lib/python3.6/site-packages/torch/distributed/launch.py", line 301, in sigkill_handler
+    raise subprocess.CalledProcessError(returncode=last_return_code, cmd=cmd)
+subprocess.CalledProcessError: Command '['/home/dsys2352/miniconda3/envs/dist_GNN/bin/python', '-u', 'GCN_Cora_Distributed_MulNode.py']' returned non-zero exit status 1.
+Killing subprocess 290005
+srun: error: node024: task 2: Exited with exit code 1

@@ -1,0 +1,156 @@
+Hello, I am  2
+Hello, I am  1
+Hello, I am  0
+data sent to node 1
+data received on node 1 from node 0
+data sent to node 2
+data received on node 2 from node 0
+tensor([[0., 0., 0.,  ..., 0., 0., 0.],
+        [0., 0., 0.,  ..., 0., 0., 0.],
+        [0., 0., 0.,  ..., 0., 0., 0.],
+        ...,
+        [0., 0., 0.,  ..., 0., 0., 0.],
+        [0., 0., 0.,  ..., 0., 0., 0.],
+        [0., 0., 0.,  ..., 0., 0., 0.]]) torch.Size([1354, 1433])
+tensor([[1354,    0,    1,  ..., 1158, 1158, 1158],
+        [1229, 1089,  707,  ..., 1474, 1639, 1159]]) torch.Size([2, 5748])
+tensor([[0., 0., 0.,  ..., 0., 0., 0.],
+        [0., 0., 0.,  ..., 0., 0., 0.],
+        [0., 0., 0.,  ..., 0., 0., 0.],
+        ...,
+        [0., 0., 0.,  ..., 0., 0., 0.],
+        [0., 0., 0.,  ..., 0., 0., 0.],
+        [0., 0., 0.,  ..., 0., 0., 0.]]) torch.Size([1354, 1433])
+tensor([[   0,    0,    0,  ..., 1702, 1702, 1702],
+        [ 354, 1021, 1643,  ...,   85,  337,  837]]) torch.Size([2, 6156])
+Rank 1 has requested data
+Rank 2 has received tensor([ 678,  680,  682,  684,  685,  688,  690,  691,  692,  693,  696,  698,
+         702,  704,  705,  707,  708,  710,  711,  712,  713,  714,  715,  716,
+         717,  722,  724,  726,  727,  729,  731,  733,  734,  736,  737,  740,
+         742,  743,  745,  746,  751,  753,  754,  759,  763,  766,  767,  770,
+         772,  774,  775,  776,  777,  778,  779,  781,  782,  783,  784,  785,
+         786,  787,  788,  790,  791,  792,  794,  795,  799,  802,  803,  804,
+         808,  809,  811,  812,  813,  814,  815,  816,  818,  822,  827,  829,
+         830,  833,  835,  837,  838,  839,  841,  842,  843,  845,  846,  847,
+         848,  849,  850,  851,  854,  855,  856,  857,  858,  861,  862,  863,
+         864,  865,  866,  868,  869,  870,  872,  873,  874,  875,  877,  878,
+         879,  880,  885,  886,  890,  892,  893,  896,  898,  899,  900,  901,
+         903,  905,  906,  907,  908,  909,  911,  912,  914,  916,  917,  918,
+         920,  921,  922,  923,  924,  925,  926,  927,  928,  930,  932,  934,
+         935,  938,  944,  947,  949,  953,  955,  956,  960,  961,  962,  964,
+         965,  966,  967,  968,  969,  972,  973,  975,  980,  981,  982,  983,
+         986,  988,  989,  990,  992,  993,  994,  995,  996, 1000, 1002, 1003,
+        1004, 1006, 1013, 1014, 1015, 1016, 1018, 1020, 1021, 1023, 1024, 1025,
+        1026, 1027, 1029, 1031, 1036, 1039, 1042, 1043, 1044, 1046, 1047, 1049,
+        1050, 1051, 1052, 1053, 1054, 1055, 1056, 1057, 1058, 1059, 1061, 1062,
+        1063, 1064, 1065, 1066, 1071, 1073, 1074, 1075, 1076, 1077, 1079, 1081,
+        1082, 1083, 1084, 1085, 1086, 1091, 1092, 1095, 1096, 1097, 1098, 1099,
+        1100, 1101, 1105, 1106, 1107, 1109, 1111, 1115, 1116, 1117, 1118, 1119,
+        1121, 1124, 1125, 1126, 1127, 1129, 1130, 1131, 1132, 1133, 1134, 1135,
+        1138, 1139, 1142, 1143, 1151, 1158, 1159, 1160, 1162, 1163, 1165, 1166,
+        1172, 1174, 1176, 1177, 1178, 1181, 1184, 1186, 1190, 1191, 1192, 1194,
+        1195, 1198, 1200, 1201, 1202, 1203, 1204, 1205, 1206, 1211, 1212, 1213,
+        1215, 1217, 1218, 1219, 1221, 1222, 1223, 1224, 1225, 1227, 1228, 1230,
+        1232, 1233, 1235, 1239, 1241, 1242, 1244, 1246, 1247, 1255, 1256, 1257,
+        1258, 1259, 1260, 1261, 1263, 1265, 1266, 1268, 1269, 1272, 1273, 1278,
+        1279, 1282, 1283, 1285, 1288, 1290, 1291, 1294, 1295, 1297, 1299, 1300,
+        1301, 1302, 1303, 1307, 1309, 1310, 1314, 1315, 1316, 1319, 1320, 1321,
+        1322, 1323, 1324, 1325, 1326, 1327, 1328, 1329, 1330, 1331, 1332, 1334,
+        1338, 1340, 1341, 1342, 1343, 1344, 1347, 1348, 1349, 1351, 1352])
+Rank 2 index remapped to  tensor([ 678,  680,  682,  684,  685,  688,  690,  691,  692,  693,  696,  698,
+         702,  704,  705,  707,  708,  710,  711,  712,  713,  714,  715,  716,
+         717,  722,  724,  726,  727,  729,  731,  733,  734,  736,  737,  740,
+         742,  743,  745,  746,  751,  753,  754,  759,  763,  766,  767,  770,
+         772,  774,  775,  776,  777,  778,  779,  781,  782,  783,  784,  785,
+         786,  787,  788,  790,  791,  792,  794,  795,  799,  802,  803,  804,
+         808,  809,  811,  812,  813,  814,  815,  816,  818,  822,  827,  829,
+         830,  833,  835,  837,  838,  839,  841,  842,  843,  845,  846,  847,
+         848,  849,  850,  851,  854,  855,  856,  857,  858,  861,  862,  863,
+         864,  865,  866,  868,  869,  870,  872,  873,  874,  875,  877,  878,
+         879,  880,  885,  886,  890,  892,  893,  896,  898,  899,  900,  901,
+         903,  905,  906,  907,  908,  909,  911,  912,  914,  916,  917,  918,
+         920,  921,  922,  923,  924,  925,  926,  927,  928,  930,  932,  934,
+         935,  938,  944,  947,  949,  953,  955,  956,  960,  961,  962,  964,
+         965,  966,  967,  968,  969,  972,  973,  975,  980,  981,  982,  983,
+         986,  988,  989,  990,  992,  993,  994,  995,  996, 1000, 1002, 1003,
+        1004, 1006, 1013, 1014, 1015, 1016, 1018, 1020, 1021, 1023, 1024, 1025,
+        1026, 1027, 1029, 1031, 1036, 1039, 1042, 1043, 1044, 1046, 1047, 1049,
+        1050, 1051, 1052, 1053, 1054, 1055, 1056, 1057, 1058, 1059, 1061, 1062,
+        1063, 1064, 1065, 1066, 1071, 1073, 1074, 1075, 1076, 1077, 1079, 1081,
+        1082, 1083, 1084, 1085, 1086, 1091, 1092, 1095, 1096, 1097, 1098, 1099,
+        1100, 1101, 1105, 1106, 1107, 1109, 1111, 1115, 1116, 1117, 1118, 1119,
+        1121, 1124, 1125, 1126, 1127, 1129, 1130, 1131, 1132, 1133, 1134, 1135,
+        1138, 1139, 1142, 1143, 1151, 1158, 1159, 1160, 1162, 1163, 1165, 1166,
+        1172, 1174, 1176, 1177, 1178, 1181, 1184, 1186, 1190, 1191, 1192, 1194,
+        1195, 1198, 1200, 1201, 1202, 1203, 1204, 1205, 1206, 1211, 1212, 1213,
+        1215, 1217, 1218, 1219, 1221, 1222, 1223, 1224, 1225, 1227, 1228, 1230,
+        1232, 1233, 1235, 1239, 1241, 1242, 1244, 1246, 1247, 1255, 1256, 1257,
+        1258, 1259, 1260, 1261, 1263, 1265, 1266, 1268, 1269, 1272, 1273, 1278,
+        1279, 1282, 1283, 1285, 1288, 1290, 1291, 1294, 1295, 1297, 1299, 1300,
+        1301, 1302, 1303, 1307, 1309, 1310, 1314, 1315, 1316, 1319, 1320, 1321,
+        1322, 1323, 1324, 1325, 1326, 1327, 1328, 1329, 1330, 1331, 1332, 1334,
+        1338, 1340, 1341, 1342, 1343, 1344, 1347, 1348, 1349, 1351, 1352])
+Rank2 has sent requested data
+torch.Size([1354, 1433])
+Rank1 has received tensor([[0., 0., 0.,  ..., 0., 0., 0.],
+        [0., 0., 0.,  ..., 0., 0., 0.],
+        [0., 0., 0.,  ..., 0., 0., 0.],
+        ...,
+        [0., 0., 0.,  ..., 0., 0., 0.],
+        [0., 0., 0.,  ..., 0., 0., 0.],
+        [0., 0., 0.,  ..., 0., 0., 0.]])
+torch.Size([1354, 1433])
+Traceback (most recent call last):
+  File "GCN_Cora_Distributed_MulNode.py", line 155, in <module>
+    main(rank, world_size, host_addr_full)
+  File "GCN_Cora_Distributed_MulNode.py", line 141, in main
+    _, pred = model(data).max(dim=1)
+  File "/home/dsys2352/miniconda3/envs/dist_GNN/lib/python3.6/site-packages/torch/nn/modules/module.py", line 889, in _call_impl
+    result = self.forward(*input, **kwargs)
+  File "GCN_Cora_Distributed_MulNode.py", line 100, in forward
+    torch.cat(x, requested_nodes_feature, dim = 0)
+TypeError: cat() received an invalid combination of arguments - got (Tensor, Tensor, dim=int), but expected one of:
+ * (tuple of Tensors tensors, name dim, *, Tensor out)
+ * (tuple of Tensors tensors, int dim, *, Tensor out)
+
+Traceback (most recent call last):
+  File "GCN_Cora_Distributed_MulNode.py", line 155, in <module>
+    main(rank, world_size, host_addr_full)
+  File "GCN_Cora_Distributed_MulNode.py", line 141, in main
+    _, pred = model(data).max(dim=1)
+  File "/home/dsys2352/miniconda3/envs/dist_GNN/lib/python3.6/site-packages/torch/nn/modules/module.py", line 889, in _call_impl
+    result = self.forward(*input, **kwargs)
+  File "GCN_Cora_Distributed_MulNode.py", line 100, in forward
+    torch.cat(x, requested_nodes_feature, dim = 0)
+TypeError: cat() received an invalid combination of arguments - got (Tensor, NoneType, dim=int), but expected one of:
+ * (tuple of Tensors tensors, name dim, *, Tensor out)
+ * (tuple of Tensors tensors, int dim, *, Tensor out)
+
+Traceback (most recent call last):
+  File "/home/dsys2352/miniconda3/envs/dist_GNN/lib/python3.6/runpy.py", line 193, in _run_module_as_main
+    "__main__", mod_spec)
+  File "/home/dsys2352/miniconda3/envs/dist_GNN/lib/python3.6/runpy.py", line 85, in _run_code
+    exec(code, run_globals)
+  File "/home/dsys2352/miniconda3/envs/dist_GNN/lib/python3.6/site-packages/torch/distributed/launch.py", line 340, in <module>
+    main()
+  File "/home/dsys2352/miniconda3/envs/dist_GNN/lib/python3.6/site-packages/torch/distributed/launch.py", line 326, in main
+    sigkill_handler(signal.SIGTERM, None)  # not coming back
+  File "/home/dsys2352/miniconda3/envs/dist_GNN/lib/python3.6/site-packages/torch/distributed/launch.py", line 301, in sigkill_handler
+    raise subprocess.CalledProcessError(returncode=last_return_code, cmd=cmd)
+subprocess.CalledProcessError: Command '['/home/dsys2352/miniconda3/envs/dist_GNN/bin/python', '-u', 'GCN_Cora_Distributed_MulNode.py']' returned non-zero exit status 1.
+Killing subprocess 1080398
+srun: error: node002: task 1: Exited with exit code 1
+Traceback (most recent call last):
+  File "/home/dsys2352/miniconda3/envs/dist_GNN/lib/python3.6/runpy.py", line 193, in _run_module_as_main
+    "__main__", mod_spec)
+  File "/home/dsys2352/miniconda3/envs/dist_GNN/lib/python3.6/runpy.py", line 85, in _run_code
+    exec(code, run_globals)
+  File "/home/dsys2352/miniconda3/envs/dist_GNN/lib/python3.6/site-packages/torch/distributed/launch.py", line 340, in <module>
+    main()
+  File "/home/dsys2352/miniconda3/envs/dist_GNN/lib/python3.6/site-packages/torch/distributed/launch.py", line 326, in main
+    sigkill_handler(signal.SIGTERM, None)  # not coming back
+  File "/home/dsys2352/miniconda3/envs/dist_GNN/lib/python3.6/site-packages/torch/distributed/launch.py", line 301, in sigkill_handler
+    raise subprocess.CalledProcessError(returncode=last_return_code, cmd=cmd)
+subprocess.CalledProcessError: Command '['/home/dsys2352/miniconda3/envs/dist_GNN/bin/python', '-u', 'GCN_Cora_Distributed_MulNode.py']' returned non-zero exit status 1.
+Killing subprocess 274767
+srun: error: node024: task 2: Exited with exit code 1

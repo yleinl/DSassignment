@@ -125,10 +125,28 @@ def partition_data(dataset, num_partitions):
                             sent_partition_nodes.append(node)
                             break
             sent_nodes.append(sent_partition_nodes)
-        external_node_mapping = {}
+        # external_node_mapping = {}
+        # remapped_edge_index = edge_index[:, connected_edges]
+        # remapped_edge_index[0, :] = torch.tensor([owned_nodes.tolist().index(node.item()) if node.item() in owned_nodes else external_node_mapping.setdefault(node.item(), new_index + len(external_node_mapping)) for node in remapped_edge_index[0]])
+        # remapped_edge_index[1, :] = torch.tensor([owned_nodes.tolist().index(node.item()) if node.item() in owned_nodes else external_node_mapping.setdefault(node.item(), new_index + len(external_node_mapping)) for node in remapped_edge_index[1]])
+        
+        external_nodes = [node.item() for node in edge_index[:, connected_edges].flatten()
+                          if node.item() not in owned_nodes]
+        external_nodes_sorted = sorted(set(external_nodes))
+
+        external_node_mapping = {node: i + len(owned_nodes) for i, node in enumerate(external_nodes_sorted)}
+
         remapped_edge_index = edge_index[:, connected_edges]
-        remapped_edge_index[0, :] = torch.tensor([owned_nodes.tolist().index(node.item()) if node.item() in owned_nodes else external_node_mapping.setdefault(node.item(), new_index + len(external_node_mapping)) for node in remapped_edge_index[0]])
-        remapped_edge_index[1, :] = torch.tensor([owned_nodes.tolist().index(node.item()) if node.item() in owned_nodes else external_node_mapping.setdefault(node.item(), new_index + len(external_node_mapping)) for node in remapped_edge_index[1]])
+        remapped_edge_index[0, :] = torch.tensor([
+            owned_nodes.tolist().index(node.item()) if node.item() in owned_nodes
+            else external_node_mapping[node.item()]
+            for node in remapped_edge_index[0]
+        ])
+        remapped_edge_index[1, :] = torch.tensor([
+            owned_nodes.tolist().index(node.item()) if node.item() in owned_nodes
+            else external_node_mapping[node.item()]
+            for node in remapped_edge_index[1]
+        ])
 
         # 拷贝原来的数据特征
         partition_data = data.clone()
@@ -142,7 +160,7 @@ def partition_data(dataset, num_partitions):
         partition_data.y = data.y[owned_nodes]
         partition_data.num_classes = dataset.num_classes
         partition_data.owned_nodes = owned_nodes
-        partition_data.num_nodes = len(owned_nodes)
+        partition_data.num_nodes = num_nodes
         partition_data.communication_sources = communication_sources
         partition_data.sent_nodes = sent_nodes
 

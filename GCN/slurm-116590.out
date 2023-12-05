@@ -1,0 +1,167 @@
+Hello, I am  2
+Hello, I am  1
+Hello, I am  0
+data sent to node 1
+data received on node 1 from node 0
+data sent to node 2
+data received on node 2 from node 0
+tensor([[0., 0., 0.,  ..., 0., 0., 0.],
+        [0., 0., 0.,  ..., 0., 0., 0.],
+        [0., 0., 0.,  ..., 0., 0., 0.],
+        ...,
+        [0., 0., 0.,  ..., 0., 0., 0.],
+        [0., 0., 0.,  ..., 0., 0., 0.],
+        [0., 0., 0.,  ..., 0., 0., 0.]]) torch.Size([1354, 1433])
+tensor([[   0,    0,    0,  ..., 1661, 1661, 1661],
+        [ 340, 1021, 1593,  ...,   87,  319,  798]]) torch.Size([2, 5898])
+tensor([[0., 0., 0.,  ..., 0., 0., 0.],
+        [0., 0., 0.,  ..., 0., 0., 0.],
+        [0., 0., 0.,  ..., 0., 0., 0.],
+        ...,
+        [0., 0., 0.,  ..., 0., 0., 0.],
+        [0., 0., 0.,  ..., 0., 0., 0.],
+        [0., 0., 0.,  ..., 0., 0., 0.]]) torch.Size([1354, 1433])
+tensor([[1354,    0,    0,  ..., 1255, 1255, 1255],
+        [1335,    1,  301,  ..., 1438, 1546, 1256]]) torch.Size([2, 5700])
+Rank 1 has requested data
+Rank 2 has received tensor([ 679,  680,  682,  685,  692,  693,  695,  698,  699,  702,  706,  707,
+         711,  712,  713,  714,  718,  719,  724,  725,  727,  729,  730,  731,
+         734,  736,  737,  741,  746,  751,  753,  755,  756,  761,  762,  763,
+         765,  770,  771,  772,  773,  774,  777,  778,  779,  782,  783,  785,
+         786,  787,  789,  792,  795,  799,  802,  803,  804,  805,  808,  809,
+         810,  813,  814,  815,  817,  821,  822,  830,  831,  836,  839,  842,
+         843,  846,  847,  850,  851,  852,  854,  857,  858,  859,  861,  865,
+         878,  879,  880,  884,  887,  888,  890,  891,  893,  894,  896,  897,
+         899,  901,  903,  907,  908,  910,  911,  913,  916,  917,  921,  922,
+         923,  924,  925,  928,  932,  934,  935,  937,  943,  944,  945,  946,
+         947,  948,  950,  953,  955,  958,  961,  963,  964,  965,  966,  967,
+         972,  973,  979,  980,  981,  982,  984,  986,  989,  991,  992,  993,
+         995,  997, 1000, 1001, 1006, 1009, 1010, 1011, 1012, 1013, 1014, 1015,
+        1016, 1017, 1018, 1021, 1024, 1025, 1026, 1027, 1029, 1030, 1042, 1043,
+        1044, 1045, 1046, 1047, 1051, 1053, 1055, 1059, 1061, 1068, 1069, 1072,
+        1074, 1075, 1076, 1078, 1079, 1082, 1083, 1084, 1085, 1086, 1087, 1088,
+        1089, 1090, 1091, 1093, 1094, 1097, 1101, 1104, 1107, 1108, 1115, 1117,
+        1118, 1124, 1125, 1137, 1139, 1140, 1141, 1142, 1143, 1144, 1146, 1147,
+        1151, 1152, 1153, 1156, 1157, 1158, 1159, 1162, 1163, 1170, 1174, 1178,
+        1180, 1181, 1184, 1185, 1186, 1190, 1191, 1193, 1196, 1197, 1198, 1200,
+        1202, 1204, 1205, 1208, 1213, 1218, 1220, 1221, 1222, 1224, 1225, 1227,
+        1228, 1232, 1233, 1234, 1240, 1242, 1245, 1246, 1248, 1251, 1253, 1256,
+        1258, 1259, 1263, 1264, 1266, 1268, 1269, 1270, 1271, 1274, 1277, 1279,
+        1285, 1288, 1289, 1290, 1291, 1293, 1302, 1303, 1304, 1307, 1309, 1310,
+        1314, 1318, 1319, 1325, 1326, 1330, 1335, 1336, 1337, 1338, 1343, 1344,
+        1346, 1347, 1350, 1351, 1352])
+Rank 2 index remapped to  tensor([ 679,  680,  682,  685,  692,  693,  695,  698,  699,  702,  706,  707,
+         711,  712,  713,  714,  718,  719,  724,  725,  727,  729,  730,  731,
+         734,  736,  737,  741,  746,  751,  753,  755,  756,  761,  762,  763,
+         765,  770,  771,  772,  773,  774,  777,  778,  779,  782,  783,  785,
+         786,  787,  789,  792,  795,  799,  802,  803,  804,  805,  808,  809,
+         810,  813,  814,  815,  817,  821,  822,  830,  831,  836,  839,  842,
+         843,  846,  847,  850,  851,  852,  854,  857,  858,  859,  861,  865,
+         878,  879,  880,  884,  887,  888,  890,  891,  893,  894,  896,  897,
+         899,  901,  903,  907,  908,  910,  911,  913,  916,  917,  921,  922,
+         923,  924,  925,  928,  932,  934,  935,  937,  943,  944,  945,  946,
+         947,  948,  950,  953,  955,  958,  961,  963,  964,  965,  966,  967,
+         972,  973,  979,  980,  981,  982,  984,  986,  989,  991,  992,  993,
+         995,  997, 1000, 1001, 1006, 1009, 1010, 1011, 1012, 1013, 1014, 1015,
+        1016, 1017, 1018, 1021, 1024, 1025, 1026, 1027, 1029, 1030, 1042, 1043,
+        1044, 1045, 1046, 1047, 1051, 1053, 1055, 1059, 1061, 1068, 1069, 1072,
+        1074, 1075, 1076, 1078, 1079, 1082, 1083, 1084, 1085, 1086, 1087, 1088,
+        1089, 1090, 1091, 1093, 1094, 1097, 1101, 1104, 1107, 1108, 1115, 1117,
+        1118, 1124, 1125, 1137, 1139, 1140, 1141, 1142, 1143, 1144, 1146, 1147,
+        1151, 1152, 1153, 1156, 1157, 1158, 1159, 1162, 1163, 1170, 1174, 1178,
+        1180, 1181, 1184, 1185, 1186, 1190, 1191, 1193, 1196, 1197, 1198, 1200,
+        1202, 1204, 1205, 1208, 1213, 1218, 1220, 1221, 1222, 1224, 1225, 1227,
+        1228, 1232, 1233, 1234, 1240, 1242, 1245, 1246, 1248, 1251, 1253, 1256,
+        1258, 1259, 1263, 1264, 1266, 1268, 1269, 1270, 1271, 1274, 1277, 1279,
+        1285, 1288, 1289, 1290, 1291, 1293, 1302, 1303, 1304, 1307, 1309, 1310,
+        1314, 1318, 1319, 1325, 1326, 1330, 1335, 1336, 1337, 1338, 1343, 1344,
+        1346, 1347, 1350, 1351, 1352])
+Rank 2 has sent requested data
+Rank 1 has received tensor([[0., 0., 0.,  ..., 0., 0., 0.],
+        [0., 0., 0.,  ..., 0., 0., 0.],
+        [0., 0., 0.,  ..., 0., 0., 0.],
+        ...,
+        [0., 0., 0.,  ..., 0., 0., 0.],
+        [0., 0., 0.,  ..., 0., 0., 0.],
+        [0., 0., 0.,  ..., 0., 0., 0.]])
+GCN_Cora_Distributed_MulNode.py:109: UserWarning: To copy construct from a tensor, it is recommended to use sourceTensor.clone().detach() or sourceTensor.clone().detach().requires_grad_(True), rather than torch.tensor(sourceTensor).
+  send_object(torch.tensor(requested_nodes_list[i]), dst = 1)
+Rank 2 has requested data
+Rank 1 has received tensor(680)
+Rank 1 index remapped to  tensor(680)
+Rank 2 has received tensor([0., 0., 0.,  ..., 0., 0., 0.])
+before cat in rank  2 torch.Size([1354, 1433])
+after cat in rank 2 torch.Size([1355, 1433])
+Rank  2  has data  tensor([   1,    2,    4,  ..., 2554, 2553, 2552])
+Rank 1 has sent requested data
+before cat in rank  1 torch.Size([1354, 1433])
+after cat in rank 1 torch.Size([1659, 1433])
+Rank  1  has data  tensor([   0,    3,    5,  ..., 2548, 2549, 2550])
+Traceback (most recent call last):
+  File "GCN_Cora_Distributed_MulNode.py", line 170, in <module>
+    main(rank, world_size, host_addr_full)
+  File "GCN_Cora_Distributed_MulNode.py", line 156, in main
+    _, pred = model(data).max(dim=1)
+  File "/home/dsys2352/miniconda3/envs/dist_GNN/lib/python3.6/site-packages/torch/nn/modules/module.py", line 889, in _call_impl
+    result = self.forward(*input, **kwargs)
+  File "GCN_Cora_Distributed_MulNode.py", line 121, in forward
+    x = self.conv1(x, edge_index)
+  File "/home/dsys2352/miniconda3/envs/dist_GNN/lib/python3.6/site-packages/torch/nn/modules/module.py", line 889, in _call_impl
+    result = self.forward(*input, **kwargs)
+  File "GCN_Cora_Distributed_MulNode.py", line 19, in forward
+    return self.propagate(edge_index, size=(x.size(0), x.size(0)), x=x)
+  File "/home/dsys2352/miniconda3/envs/dist_GNN/lib/python3.6/site-packages/torch_geometric/nn/conv/message_passing.py", line 310, in propagate
+    size, kwargs)
+  File "/home/dsys2352/miniconda3/envs/dist_GNN/lib/python3.6/site-packages/torch_geometric/nn/conv/message_passing.py", line 202, in __collect__
+    j if arg[-2:] == '_j' else i)
+  File "/home/dsys2352/miniconda3/envs/dist_GNN/lib/python3.6/site-packages/torch_geometric/nn/conv/message_passing.py", line 171, in __lift__
+    return src.index_select(self.node_dim, index)
+IndexError: index out of range in self
+Traceback (most recent call last):
+  File "GCN_Cora_Distributed_MulNode.py", line 170, in <module>
+    main(rank, world_size, host_addr_full)
+  File "GCN_Cora_Distributed_MulNode.py", line 156, in main
+    _, pred = model(data).max(dim=1)
+  File "/home/dsys2352/miniconda3/envs/dist_GNN/lib/python3.6/site-packages/torch/nn/modules/module.py", line 889, in _call_impl
+    result = self.forward(*input, **kwargs)
+  File "GCN_Cora_Distributed_MulNode.py", line 121, in forward
+    x = self.conv1(x, edge_index)
+  File "/home/dsys2352/miniconda3/envs/dist_GNN/lib/python3.6/site-packages/torch/nn/modules/module.py", line 889, in _call_impl
+    result = self.forward(*input, **kwargs)
+  File "GCN_Cora_Distributed_MulNode.py", line 19, in forward
+    return self.propagate(edge_index, size=(x.size(0), x.size(0)), x=x)
+  File "/home/dsys2352/miniconda3/envs/dist_GNN/lib/python3.6/site-packages/torch_geometric/nn/conv/message_passing.py", line 310, in propagate
+    size, kwargs)
+  File "/home/dsys2352/miniconda3/envs/dist_GNN/lib/python3.6/site-packages/torch_geometric/nn/conv/message_passing.py", line 202, in __collect__
+    j if arg[-2:] == '_j' else i)
+  File "/home/dsys2352/miniconda3/envs/dist_GNN/lib/python3.6/site-packages/torch_geometric/nn/conv/message_passing.py", line 171, in __lift__
+    return src.index_select(self.node_dim, index)
+IndexError: index out of range in self
+Traceback (most recent call last):
+  File "/home/dsys2352/miniconda3/envs/dist_GNN/lib/python3.6/runpy.py", line 193, in _run_module_as_main
+    "__main__", mod_spec)
+  File "/home/dsys2352/miniconda3/envs/dist_GNN/lib/python3.6/runpy.py", line 85, in _run_code
+    exec(code, run_globals)
+  File "/home/dsys2352/miniconda3/envs/dist_GNN/lib/python3.6/site-packages/torch/distributed/launch.py", line 340, in <module>
+    main()
+  File "/home/dsys2352/miniconda3/envs/dist_GNN/lib/python3.6/site-packages/torch/distributed/launch.py", line 326, in main
+    sigkill_handler(signal.SIGTERM, None)  # not coming back
+  File "/home/dsys2352/miniconda3/envs/dist_GNN/lib/python3.6/site-packages/torch/distributed/launch.py", line 301, in sigkill_handler
+    raise subprocess.CalledProcessError(returncode=last_return_code, cmd=cmd)
+subprocess.CalledProcessError: Command '['/home/dsys2352/miniconda3/envs/dist_GNN/bin/python', '-u', 'GCN_Cora_Distributed_MulNode.py']' returned non-zero exit status 1.
+Killing subprocess 1081167
+srun: error: node002: task 1: Exited with exit code 1
+Traceback (most recent call last):
+  File "/home/dsys2352/miniconda3/envs/dist_GNN/lib/python3.6/runpy.py", line 193, in _run_module_as_main
+    "__main__", mod_spec)
+  File "/home/dsys2352/miniconda3/envs/dist_GNN/lib/python3.6/runpy.py", line 85, in _run_code
+    exec(code, run_globals)
+  File "/home/dsys2352/miniconda3/envs/dist_GNN/lib/python3.6/site-packages/torch/distributed/launch.py", line 340, in <module>
+    main()
+  File "/home/dsys2352/miniconda3/envs/dist_GNN/lib/python3.6/site-packages/torch/distributed/launch.py", line 326, in main
+    sigkill_handler(signal.SIGTERM, None)  # not coming back
+  File "/home/dsys2352/miniconda3/envs/dist_GNN/lib/python3.6/site-packages/torch/distributed/launch.py", line 301, in sigkill_handler
+    raise subprocess.CalledProcessError(returncode=last_return_code, cmd=cmd)
+subprocess.CalledProcessError: Command '['/home/dsys2352/miniconda3/envs/dist_GNN/bin/python', '-u', 'GCN_Cora_Distributed_MulNode.py']' returned non-zero exit status 1.
+Killing subprocess 275838
+srun: error: node024: task 2: Exited with exit code 1

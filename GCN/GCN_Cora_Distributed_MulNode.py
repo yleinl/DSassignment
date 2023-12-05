@@ -30,13 +30,15 @@ class GraphConvolution(MessagePassing):
 
 
 class Net(torch.nn.Module):
-    def __init__(self,nfeat, nhid, nclass, dropout, rank, world_size):
+    def __init__(self, nfeat, nhid, nclass, dropout, rank, world_size):
         super(Net, self).__init__()
         
         self.rank = rank
         
         self.world_size = world_size
         
+        self.nfeat = nfeat
+
         self.conv1 = GraphConvolution(nfeat, nhid)
 
         self.conv2 = GraphConvolution(nhid, nclass)
@@ -44,8 +46,9 @@ class Net(torch.nn.Module):
         self.dropout=dropout
     
     def generate_communication_list(self, num_nodes, nodes_from, owned_nodes):
+
         communication_nodes = np.unique([node for node in nodes_from if node not in owned_nodes])
-        
+       
         requested_nodes_list = []
         for i in range(self.world_size):
             nodes = []
@@ -56,46 +59,80 @@ class Net(torch.nn.Module):
         start_idx = [i * partition_size for i in range(num_partitions)]
         end_idx = [(i + 1) * partition_size if i != num_partitions - 1 else num_nodes for i in range(num_partitions)]
         Range = [range(start_idx[i], end_idx[i]) for i in range(num_partitions)]        
-
+        
+        print('Range')
+        print(Range)
         for node in communication_nodes:
             for i in range(num_partitions):
                 if node in Range[i]:
                     requested_nodes_list[i + 1].append(node)
         
-        # print(requested_nodes_lis)
-
+        print('requested_nodes_list')
+        print(requested_nodes_list)
+        
         return requested_nodes_list
 
     def remap_index(self, requested_nodes_list, owned_nodes):
         return requested_nodes_list % owned_nodes.shape[0] 
 
     def forward(self, data):
-        num_nodes, x, edge_index, owned_nodes = data.num_nodes, data.x, data.edge_index, data.owned_nodes
+        num_nodes, x, edge_index, owned_nodes = data.num_nodes, data.x, data.prev_edge_index, data.owned_nodes
         
-        requested_nodes_list =  self.generate_communication_list(num_nodes, edge_index[0], owned_nodes)
-
+        requested_nodes_list = self.generate_communication_list(num_nodes, edge_index[0], owned_nodes)
+        
+        print(x, x.shape)
+        print(edge_index, edge_index.shape)
         req = None
+        print('world size', self.world_size)
         for i in range(1, self.world_size):
+            '''
+            if self.rank == 1:
+                requested_nodes_list = data.communication_sources[1]
+            else:
+                requested_nodes_list = data.communication_sources[0]
+            print("request nodes:", len(requested_nodes_list), requested_nodes_list)
+            '''
+            print("request nodes:", len(requested_nodes_list[i]))
+
             if(self.rank == i or len(requested_nodes_list[i]) == 0):
                 continue
             
             if self.rank == 1:
-                # Send the tensor to process 1
+                # Send the tensor list to node 2
+                print('Rank 1 sending', requested_nodes_list[i])
                 send_object(torch.tensor(requested_nodes_list[i]), dst = 2)
                 print('Rank 1 has requested data')
                 requested_nodes_feature = recv_object(src = 2)
-                print('Rank1 has received', requested_nodes_feature)
+                print('Rank 1 has received', requested_nodes_feature)
+
+                # Receive tensor list from node 2
+                requested_nodes_list = recv_object(src = 2)
+                print('Rank 1 has received', requested_nodes_list)
+                remapped_idx = self.remap_index(requested_nodes_list, owned_nodes)
+                print('Rank 1 index remapped to ', remapped_idx)
+                send_object(x[remapped_idx], dst = 2)
+                print('Rank 1 has sent requested data')
             else:
-                # Receive tensor from process 0
+                # Receive tensor list from node 1
                 requested_nodes_list = recv_object(src = 1)
                 print('Rank 2 has received', requested_nodes_list)
                 remapped_idx = self.remap_index(requested_nodes_list, owned_nodes)
                 print('Rank 2 index remapped to ', remapped_idx)
                 send_object(x[remapped_idx], dst = 1)
-                print('Rank2 has sent requested data')
+                print('Rank 2 has sent requested data')
 
-            print('Rank ', self.rank, ' has data ', owned_nodes) 
-            print(owned_nodes.shape, owned_nodes.shape[0])
+                # Send the tensor list to node 1
+                print('Rank 2 sending', requested_nodes_list[i])
+                send_object(torch.tensor(requested_nodes_list[i]), dst = 1)
+                print('Rank 2 has requested data')
+                requested_nodes_feature = recv_object(src = 1)
+                print('Rank 2 has received', requested_nodes_feature)
+            
+            print('before cat in rank ', self.rank, x.shape)
+            x = torch.cat((x, requested_nodes_feature.reshape(-1, self.nfeat)), dim = 0)
+            print('after cat in rank', self.rank, x.shape)
+            print('Rank ', self.rank, ' has data ', x) 
+            # print(owned_nodes.shape, owned_nodes.shape[0])
             # print('Rank ', self.rank, ' has data ', requested_nodes_list)
 
         x = self.conv1(x, edge_index)
@@ -104,7 +141,7 @@ class Net(torch.nn.Module):
         x = F.dropout(x, self.dropout, training=self.training)
         x = self.conv2(x, edge_index)
 
-        return F.log_softmax(x, dim=1)
+        return F.log_softmax(x, dim=1)[:num_nodes]
 
 def get_master_addr(node_list):
     return '10.141.0.{}'.format(int(node_list[5:8]))
