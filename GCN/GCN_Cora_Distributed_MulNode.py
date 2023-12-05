@@ -85,14 +85,7 @@ class Net(torch.nn.Module):
         req = None
         print('world size', self.world_size)
         for i in range(1, self.world_size):
-            '''
-            if self.rank == 1:
-                requested_nodes_list = data.communication_sources[1]
-            else:
-                requested_nodes_list = data.communication_sources[0]
-            print("request nodes:", len(requested_nodes_list), requested_nodes_list)
-            '''
-            print("request nodes:", len(requested_nodes_list[i]))
+            print("request nodes:", i, len(requested_nodes_list[i]))
 
             if(self.rank == i or len(requested_nodes_list[i]) == 0):
                 continue
@@ -114,9 +107,9 @@ class Net(torch.nn.Module):
                 print('Rank 1 has sent requested data')
             else:
                 # Receive tensor list from node 1
-                requested_nodes_list = recv_object(src = 1)
-                print('Rank 2 has received', requested_nodes_list)
-                remapped_idx = self.remap_index(requested_nodes_list, owned_nodes)
+                nodes_list = recv_object(src = 1)
+                print('Rank 2 has received', nodes_list)
+                remapped_idx = self.remap_index(nodes_list, owned_nodes)
                 print('Rank 2 index remapped to ', remapped_idx)
                 send_object(x[remapped_idx], dst = 1)
                 print('Rank 2 has sent requested data')
@@ -132,8 +125,8 @@ class Net(torch.nn.Module):
             x = torch.cat((x, requested_nodes_feature.reshape(-1, self.nfeat)), dim = 0)
             print('after cat in rank', self.rank, x.shape)
             print('Rank ', self.rank, ' has data ', x) 
-            # print(owned_nodes.shape, owned_nodes.shape[0])
-            # print('Rank ', self.rank, ' has data ', requested_nodes_list)
+
+        edge_index = data.edge_index
 
         x = self.conv1(x, edge_index)
 
@@ -161,6 +154,7 @@ def main(rank, world_size, host_addr_full):
         dataset = recv_object(src=0)
         print("data received on node {} from node 0".format(rank))
         
+        num_nodes = dataset.owned_nodes.shape[0]
         nfeat = dataset.num_node_features
         nhid = 16
         nclass = dataset.num_classes
@@ -171,6 +165,7 @@ def main(rank, world_size, host_addr_full):
         model.load_state_dict(torch.load('model_epoch_1000_Cora.pth'))
         model.eval()
         _, pred = model(data).max(dim=1)
+        pred = pred[:num_nodes]
         correct = float(pred[data.test_mask].eq(data.y[data.test_mask]).sum().item())
         acc = correct / data.test_mask.sum().item()
         print('Accuracy: {:.4f}'.format(acc))
