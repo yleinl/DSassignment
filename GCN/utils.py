@@ -65,7 +65,7 @@ def partition_data_prev(dataset, num_partitions):
         partition_data.train_mask = data.train_mask[connected_nodes]
         partition_data.val_mask = data.val_mask[connected_nodes]
         partition_data.node_partition_id = node_partition_id
-        partition_data.prev_edge_index = data.edge_index
+        partition_data.prev_edge_index = edge_index[:, connected_edges]
         partition_data.test_mask = data.test_mask[connected_nodes]
         partition_data.y = data.y[connected_nodes]
         partition_data.num_classes = dataset.num_classes
