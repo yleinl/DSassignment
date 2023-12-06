@@ -104,32 +104,58 @@ def partition_data(dataset, num_partitions):
         edge_index = data.edge_index
         connected_edges = owned_mask[edge_index[0]] | owned_mask[edge_index[1]]
         new_index = len(owned_nodes)
-        communication_sources = []
-        sent_nodes = []
-        for index in range(1, num_partitions + 1):
-            communication_nodes = []
-            for node in edge_index[:, connected_edges].view(-1):
-                if node not in owned_nodes and node_partition_id[node] == index and node not in communication_nodes:
-                    communication_nodes.append(node.item())
-            communication_sources.append(communication_nodes)
+        sent_nodes = [[] for _ in range(num_partitions)]  # 初始化外层列表
+        for source_partition in range(1, num_partitions + 1):
+            for target_partition in range(1, num_partitions + 1):
+                sent_partition_nodes = []
+                for edge in edge_index.t():
+                    for node_idx in edge:
+                        node = node_idx.item()
+                        if node in owned_nodes and [node, target_partition] not in sent_partition_nodes:
+                            other_node = edge[1] if node_idx == edge[0] else edge[0]
+                            if other_node not in owned_nodes and node_partition_id[other_node] == target_partition:
+                                # 添加节点索引和目标分区，同时执行 mod 操作
+                                sent_partition_nodes.append([node % partition_size, target_partition])
+                                break
+                sent_nodes[source_partition - 1].append(sent_partition_nodes)
 
+        communication_sources = [[] for _ in range(num_partitions)]  # 初始化外层列表
+        for target_partition in range(1, num_partitions + 1):
+            for source_partition in range(1, num_partitions + 1):
+                communication_nodes = []
+                for node in edge_index[:, connected_edges].view(-1):
+                    if node not in owned_nodes and node_partition_id[node] == source_partition and [node.item(),
+                                                                                                    source_partition] not in communication_nodes:
+                        # 添加节点索引和源分区，同时执行 mod 操作
+                        communication_nodes.append([node.item() % partition_size, source_partition])
+                communication_sources[target_partition - 1].append(communication_nodes)
 
-        for index in range(1, num_partitions + 1):
-            sent_partition_nodes = []
-            for edge in edge_index.t():
-                for node_idx in edge:
-                    node = node_idx.item()
-                    if node in owned_nodes and node not in sent_partition_nodes:
-                        other_node = edge[1] if node_idx == edge[0] else edge[0]
-                        if other_node not in owned_nodes and node_partition_id[other_node] == index:
-                            sent_partition_nodes.append(node)
-                            break
-            sent_nodes.append(sent_partition_nodes)
+        # communication_sources = []
+        # sent_nodes = []
+        # for index in range(1, num_partitions + 1):
+        #     communication_nodes = []
+        #     for node in edge_index[:, connected_edges].view(-1):
+        #         if node not in owned_nodes and node_partition_id[node] == index and node not in communication_nodes:
+        #             communication_nodes.append(node.item())
+        #     communication_sources.append(communication_nodes)
+        #
+        #
+        # for index in range(1, num_partitions + 1):
+        #     sent_partition_nodes = []
+        #     for edge in edge_index.t():
+        #         for node_idx in edge:
+        #             node = node_idx.item()
+        #             if node in owned_nodes and node not in sent_partition_nodes:
+        #                 other_node = edge[1] if node_idx == edge[0] else edge[0]
+        #                 if other_node not in owned_nodes and node_partition_id[other_node] == index:
+        #                     sent_partition_nodes.append(node)
+        #                     break
+        #     sent_nodes.append(sent_partition_nodes)
         # external_node_mapping = {}
         # remapped_edge_index = edge_index[:, connected_edges]
         # remapped_edge_index[0, :] = torch.tensor([owned_nodes.tolist().index(node.item()) if node.item() in owned_nodes else external_node_mapping.setdefault(node.item(), new_index + len(external_node_mapping)) for node in remapped_edge_index[0]])
         # remapped_edge_index[1, :] = torch.tensor([owned_nodes.tolist().index(node.item()) if node.item() in owned_nodes else external_node_mapping.setdefault(node.item(), new_index + len(external_node_mapping)) for node in remapped_edge_index[1]])
-        
+
         external_nodes = [node.item() for node in edge_index[:, connected_edges].flatten()
                           if node.item() not in owned_nodes]
         external_nodes_sorted = sorted(set(external_nodes))
@@ -190,6 +216,34 @@ def remap_data_louvain(data, cluster_nodes):
 
 def partition_data_louvain(dataset, num_partitions):
     data = dataset[0]
+    G = to_networkx(data, to_undirected=True)
+
+    # 使用Louvain算法进行图聚类
+    partition = community_louvain.best_partition(G)
+    num_nodes = data.num_nodes
+
+    # 平均每个分区节点数
+    cluster_nodes = [[] for _ in range(num_partitions)]
+    for node, cluster_id in partition.items():
+        cluster_nodes[cluster_id % num_partitions].append(node)
+
+    # 对群组进行均衡调整
+    avg_size = num_nodes // num_partitions
+    for cluster in cluster_nodes:
+        while len(cluster) > avg_size:
+            # 将多余的节点移到其他群组
+            moved_node = cluster.pop()
+            target_cluster = min(cluster_nodes, key=len)
+            target_cluster.append(moved_node)
+
+    data = remap_data_louvain(data, cluster_nodes)
+    data.num_classes = dataset.num_classes
+
+    return data, partition_data(data, num_partitions)
+
+def partition_data_louvain_sampled(dataset, num_partitions):
+    # data = dataset[0]
+    data = dataset
     G = to_networkx(data, to_undirected=True)
 
     # 使用Louvain算法进行图聚类
