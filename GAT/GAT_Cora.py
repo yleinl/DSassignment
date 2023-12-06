@@ -24,7 +24,6 @@ dataset.transform = T.NormalizeFeatures()
 
 print(f"Number of Classes in {name_data}:", dataset.num_classes)
 print(f"Number of Node Features in {name_data}:", dataset.num_node_features)
-print(dataset.y)
 
 
 # Model Definition
@@ -56,7 +55,7 @@ data = dataset[0].to(device)
 
 # Adam Optimizer
 optimizer = torch.optim.Adam(model.parameters(), lr=0.005, weight_decay=5e-4)
-
+'''
 # Training Loop
 model.train()
 for epoch in range(1000):
@@ -69,8 +68,9 @@ for epoch in range(1000):
     if (epoch+1)%200 == 0:
         print(loss)
         torch.save(model.state_dict(), f'model_epoch_{epoch+1}_{name_data}.pth')
+'''
 # Evaluation
-# model.load_state_dict(torch.load('model_epoch_1000_Cora.pth'))
+model.load_state_dict(torch.load('model_epoch_1000_Cora.pth'))
 model.eval()
 _, pred = model(data).max(dim=1)
 correct = float (pred[data.test_mask].eq(data.y[data.test_mask]).sum().item())
