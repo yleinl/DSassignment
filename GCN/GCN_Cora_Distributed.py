@@ -148,11 +148,19 @@ def main(rank, world_size):
     if rank == 0:
         name_data = 'Cora'
         dataset = Planetoid(root='/tmp/' + name_data, name=name_data)
-        partitions = partition_data(dataset, world_size - 1)
+        new_data, partitions = partition_data(dataset, world_size - 1)
         for dst_rank in range(1, world_size):
             send_object(partitions[dst_rank - 1], dst=dst_rank)
             print("data sent to node {}".format(dst_rank))
-        dataset = partitions[0]
+        all_pred = []
+        for src_rank in range(1, world_size):
+            pred = recv_object(src=src_rank)
+            all_pred.append(pred)
+        final_pred = torch.cat(all_pred, dim=0)
+        final_pred = torch.tensor(final_pred)
+        correct = float(final_pred[new_data.test_mask].eq(new_data.y[new_data.test_mask]).sum().item())
+        acc = correct / new_data.test_mask.sum().item()
+        print('Overall Accuracy: {:.4f}'.format(acc))
     else:
         dataset = recv_object(src=0)
         print("data received on node {} from node 0".format(rank))
@@ -169,6 +177,7 @@ def main(rank, world_size):
         model.eval()
         _, pred = model(data).max(dim=1)
         pred = pred[:num_nodes]
+        send_object(pred, 0)
         correct = float(pred[data.test_mask].eq(data.y[data.test_mask]).sum().item())
         acc = correct / data.test_mask.sum().item()
         print('Accuracy: {:.4f}'.format(acc))

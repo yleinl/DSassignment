@@ -213,7 +213,7 @@ def partition_data_louvain(dataset, num_partitions):
     data = remap_data_louvain(data, cluster_nodes)
     data.num_classes = dataset.num_classes
 
-    return partition_data(data, num_partitions)
+    return data, partition_data(data, num_partitions)
 
 def partition_data_louvain_prev(dataset, num_partitions):
     data = dataset[0]
