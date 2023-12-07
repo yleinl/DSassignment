@@ -40,6 +40,7 @@ class Net(torch.nn.Module):
         self.world_size = world_size
 
         self.nfeat = nfeat
+
         self.nhid = nhid
 
         self.conv1 = GraphConvolution(nfeat, nhid)
@@ -59,9 +60,9 @@ class Net(torch.nn.Module):
         x = F.relu(x)
         size_send_requests = []
         size_recv_buffers = []
-        for target_partition in range(1, world_size):
+        for target_partition in range(0, world_size):
             if target_partition != self.rank:
-                nodes_to_send = [node_info[0] for node_info in sent_nodes[self.rank - 1][target_partition - 1]]
+                nodes_to_send = [node_info[0] for node_info in sent_nodes[self.rank][target_partition]]
                 nodes_to_send = np.unique(nodes_to_send)
                 size_to_send = torch.tensor(x[nodes_to_send].shape, dtype=torch.int64)
                 size_send_req = dist.isend(tensor=size_to_send, dst=target_partition)
@@ -69,7 +70,7 @@ class Net(torch.nn.Module):
 
         size_recv_requests = []
 
-        for source_partition in range(1, world_size):
+        for source_partition in range(0, world_size):
             if source_partition != self.rank:
                 size_recv_buffer = torch.zeros(2, dtype=torch.int64)
                 req = dist.irecv(tensor=size_recv_buffer, src=source_partition)
@@ -86,16 +87,16 @@ class Net(torch.nn.Module):
         recv_requests = []
         recv_buffers = []
 
-        for target_partition in range(1, world_size):
+        for target_partition in range(0, world_size):
             if target_partition != self.rank:
-                nodes_to_send = [node_info[0] for node_info in sent_nodes[self.rank - 1][target_partition - 1]]
+                nodes_to_send = [node_info[0] for node_info in sent_nodes[self.rank][target_partition]]
                 nodes_to_send = np.unique(nodes_to_send)
                 if len(nodes_to_send) > 0:
                     tensor_to_send = x[nodes_to_send]
                     send_req = dist.isend(tensor=tensor_to_send, dst=target_partition)
                     send_requests.append(send_req)
 
-        for source_partition in range(1, world_size):
+        for source_partition in range(0, world_size):
             if source_partition != self.rank:
                 size = recv_sizes[source_partition]
                 recv_buffer = torch.zeros(size, dtype=x.dtype)
@@ -124,12 +125,36 @@ def main(rank, world_size):
     if rank == 0:
         name_data = 'Cora'
         dataset = Planetoid(root='/tmp/' + name_data, name=name_data)
-        new_data, partitions = partition_data(dataset, world_size - 1)
+        new_data, partitions = partition_data(dataset, world_size)
         print(partitions[0].num_nodes)
         for dst_rank in range(1, world_size):
-            send_object(partitions[dst_rank - 1], dst=dst_rank)
+            send_object(partitions[dst_rank], dst=dst_rank)
             print("data sent to node {}".format(dst_rank))
+
+        dataset = partitions[0]
+        print("data received on node {} from node 0".format(rank))
+
+        num_nodes = dataset.owned_nodes.shape[0]
+        nfeat = dataset.num_node_features
+        nhid = 16
+        nclass = dataset.num_classes
+        dropout = 0.5
+        device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+        model = Net(nfeat, nhid, nclass, dropout, rank, world_size).to(device)
+        data = dataset.to(device)
+        model.load_state_dict(torch.load('model_epoch_1000_Cora.pth'))
+        model.eval()
+        _, pred = model(data).max(dim=1)
+        pred = pred[:num_nodes]
+        correct = float(pred[data.test_mask].eq(data.y[data.test_mask]).sum().item())
+        if data.test_mask.sum().item() != 0:
+            acc = correct / data.test_mask.sum().item()
+            print("The accuracy at rank {} is {}".format(rank, acc))
+        else:
+            print("Rank {} has no test data".format(rank))
+
         all_pred = []
+        all_pred.append(pred)
         for src_rank in range(1, world_size):
             pred = recv_object(src=src_rank)
             all_pred.append(pred)
@@ -155,16 +180,11 @@ def main(rank, world_size):
         model = Net(nfeat, nhid, nclass, dropout, rank, world_size).to(device)
         data = dataset.to(device)
         model.load_state_dict(torch.load('model_epoch_1000_Cora.pth'))
-        # model.load_state_dict(torch.load('model_epoch_3000_Yelp.pth', map_location=torch.device('cpu')))
         model.eval()
         _, pred = model(data).max(dim=1)
         pred = pred[:num_nodes]
         correct = float(pred[data.test_mask].eq(data.y[data.test_mask]).sum().item())
         send_object(pred, 0)
-        # pred = torch.sigmoid(model(data)) > 0.5
-        # pred = pred[:num_nodes]
-        # correct = pred[data.test_mask].eq(data.y[data.test_mask].to(torch.bool)).sum().item()
-        # acc = correct / (data.test_mask.sum().item() * data.y.size(1))
         if data.test_mask.sum().item() != 0:
             acc = correct / data.test_mask.sum().item()
             print("The accuracy at rank {} is {}".format(rank, acc))
