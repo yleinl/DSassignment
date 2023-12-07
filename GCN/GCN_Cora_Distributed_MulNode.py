@@ -44,36 +44,6 @@ class Net(torch.nn.Module):
         self.conv2 = GraphConvolution(nhid, nclass)
 
         self.dropout=dropout
-    
-    def generate_communication_list(self, num_nodes, nodes_from, owned_nodes):
-
-        communication_nodes = np.unique([node for node in nodes_from if node not in owned_nodes])
-       
-        requested_nodes_list = []
-        for i in range(self.world_size):
-            nodes = []
-            requested_nodes_list.append(nodes)
-        
-        num_partitions = self.world_size - 1
-        partition_size = num_nodes // num_partitions
-        start_idx = [i * partition_size for i in range(num_partitions)]
-        end_idx = [(i + 1) * partition_size if i != num_partitions - 1 else num_nodes for i in range(num_partitions)]
-        Range = [range(start_idx[i], end_idx[i]) for i in range(num_partitions)]        
-        
-        print('Range')
-        print(Range)
-        for node in communication_nodes:
-            for i in range(num_partitions):
-                if node in Range[i]:
-                    requested_nodes_list[i + 1].append(node)
-        
-        print('requested_nodes_list')
-        print(requested_nodes_list)
-        
-        return requested_nodes_list
-
-    def remap_index(self, requested_nodes_list, owned_nodes):
-        return requested_nodes_list % owned_nodes.shape[0] 
 
     def forward(self, data):
         num_nodes, x, edge_index, owned_nodes = data.num_nodes, data.x, data.prev_edge_index, data.owned_nodes
@@ -194,10 +164,10 @@ class Net(torch.nn.Module):
         for buffer in recv_buffers:
             requested_nodes_feature.append(buffer)
         requested_nodes_feature = torch.cat(requested_nodes_feature, dim=0)
-        x = torch.cat((x[:num_nodes], requested_nodes_feature.reshape(-1, self.nhid)), dim=0)
+        x = torch.cat((x[:len(owned_nodes)], requested_nodes_feature.reshape(-1, self.nhid)), dim=0)
         
         x = self.conv2(x, edge_index)
-        return F.log_softmax(x, dim=1)[:num_nodes]
+        return F.log_softmax(x, dim=1)[:len(owned_nodes)]
 
 def get_master_addr(node_list):
     return '10.141.0.{}'.format(int(node_list[5:8]))

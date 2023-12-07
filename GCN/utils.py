@@ -1,5 +1,7 @@
 import math
 import pickle
+import time
+
 import torch
 import torch.distributed as dist
 from community import community_louvain
@@ -144,10 +146,12 @@ def partition_data(dataset, num_partitions):
             else external_node_mapping[node.item()]
             for node in remapped_edge_index[1]
         ])
+        external_features = data.x[torch.tensor(external_nodes_sorted, dtype=torch.long)]
+
 
         # 拷贝原来的数据特征
         partition_data = data.clone()
-        partition_data.x = data.x[owned_nodes]
+        partition_data.x = torch.cat((data.x[owned_nodes], external_features), dim=0)
         partition_data.edge_index = remapped_edge_index
         partition_data.train_mask = data.train_mask[owned_nodes]
         partition_data.node_partition_id = node_partition_id
@@ -348,3 +352,21 @@ def irecv_object(src, size_tensor):
     work_data = dist.irecv(buffer_tensor, src=src)
 
     return work_data, buffer_tensor
+
+def try_send(tensor, dst, TIMEOUT = 1):
+    req = dist.isend(tensor=tensor, dst=dst)
+    start_time = time.time()
+    while time.time() - start_time < TIMEOUT:
+        if req.is_completed():
+            return True
+        time.sleep(0.1)  # 短暂休眠，避免过度占用CPU
+    return False
+
+def try_recv(tensor, src, TIMEOUT = 1):
+    req = dist.irecv(tensor=tensor, src=src)
+    start_time = time.time()
+    while time.time() - start_time < TIMEOUT:
+        if req.is_completed():
+            return True
+        time.sleep(0.1)
+    return False
