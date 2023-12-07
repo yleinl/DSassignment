@@ -39,6 +39,8 @@ class Net(torch.nn.Module):
         
         self.nfeat = nfeat
 
+        self.nhid = nhid
+
         self.conv1 = GraphConvolution(nfeat, nhid)
 
         self.conv2 = GraphConvolution(nhid, nclass)
