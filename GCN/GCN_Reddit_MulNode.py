@@ -205,7 +205,7 @@ def main(rank, world_size, host_addr_full):
         device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         model = Net(nfeat, nhid, nclass, dropout, rank, world_size).to(device)
         data = dataset.to(device)
-        model.load_state_dict(torch.load('model_epoch_1000_Cora.pth'))
+        model.load_state_dict(torch.load('model_epoch_3000_Reddit.pth'))
         model.eval()
         _, pred = model(data).max(dim=1)
         pred = pred[:num_nodes]
