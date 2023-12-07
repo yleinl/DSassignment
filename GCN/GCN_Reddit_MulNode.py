@@ -226,3 +226,5 @@ if __name__ == "__main__":
     host_addr = get_master_addr(os.environ['SLURM_STEP_NODELIST'])
     port = 1234
     host_addr_full = 'tcp://' + host_addr + ':' + str(port)
+    main(rank, world_size, host_addr_full)
+
