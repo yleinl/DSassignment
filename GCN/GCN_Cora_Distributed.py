@@ -190,12 +190,12 @@ def main(rank, world_size):
         # model.load_state_dict(torch.load('model_epoch_3000_Yelp.pth', map_location=torch.device('cpu')))
         model.eval()
         _, pred = model(data).max(dim=1)
-        pred = pred[:len(data.y)]
+        pred = pred[:num_nodes]
         correct = float(pred[data.test_mask].eq(data.y[data.test_mask]).sum().item())
         acc = correct / data.test_mask.sum().item()
+        send_object(pred, 0)
         # pred = torch.sigmoid(model(data)) > 0.5
         # pred = pred[:num_nodes]
-        send_object(pred, 0)
         # correct = pred[data.test_mask].eq(data.y[data.test_mask].to(torch.bool)).sum().item()
         # acc = correct / (data.test_mask.sum().item() * data.y.size(1))
         print('Accuracy: {:.4f}'.format(acc))
