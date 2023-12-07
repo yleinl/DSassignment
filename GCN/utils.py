@@ -104,18 +104,17 @@ def partition_data(dataset, num_partitions):
         edge_index = data.edge_index
         connected_edges = owned_mask[edge_index[0]] | owned_mask[edge_index[1]]
         new_index = len(owned_nodes)
-        sent_nodes = [[] for _ in range(num_partitions)]  # 初始化外层列表
+        sent_nodes = [[] for _ in range(num_partitions)]
         for source_partition in range(1, num_partitions + 1):
             for target_partition in range(1, num_partitions + 1):
                 sent_partition_nodes = []
                 for edge in edge_index.t():
                     for node_idx in edge:
                         node = node_idx.item()
-                        if node in owned_nodes and [node, target_partition] not in sent_partition_nodes:
+                        if node in owned_nodes and [node % partition_size, target_partition] not in sent_partition_nodes:
                             other_node = edge[1] if node_idx == edge[0] else edge[0]
                             if other_node not in owned_nodes and node_partition_id[other_node] == target_partition:
                                 sent_partition_nodes.append([node % partition_size, target_partition])
-                                break
                 sent_nodes[source_partition - 1].append(sent_partition_nodes)
 
         communication_sources = [[] for _ in range(num_partitions)]  # 初始化外层列表
@@ -167,7 +166,6 @@ def partition_data(dataset, num_partitions):
     return partitions
 
 def remap_data_louvain(data, cluster_nodes):
-    # 创建新的节点顺序映射
     new_order = [node for cluster in cluster_nodes for node in cluster]
     old_to_new = {old_idx: new_idx for new_idx, old_idx in enumerate(new_order)}
 
