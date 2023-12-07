@@ -40,6 +40,7 @@ class Net(torch.nn.Module):
         self.world_size = world_size
 
         self.nfeat = nfeat
+        self.nhid = nhid
 
         self.conv1 = GraphConvolution(nfeat, nhid)
 
@@ -107,13 +108,65 @@ class Net(torch.nn.Module):
             requested_nodes_feature.append(buffer)
         requested_nodes_feature = torch.cat(requested_nodes_feature, dim=0)
         x = torch.cat((x, requested_nodes_feature.reshape(-1, self.nfeat)), dim=0)
-        if len(data.edge_index) != len(x):
-            print("bug", data.prev_edge_index)
+
         edge_index = data.edge_index
 
         x = self.conv1(x, edge_index)
 
         x = F.relu(x)
+        size_send_requests = []
+        size_recv_buffers = []
+        for target_partition in range(1, world_size):
+            if target_partition != self.rank:
+                nodes_to_send = [node_info[0] for node_info in sent_nodes[self.rank - 1][target_partition - 1]]
+                nodes_to_send = np.unique(nodes_to_send)
+                size_to_send = torch.tensor(x[nodes_to_send].shape, dtype=torch.int64)
+                size_send_req = dist.isend(tensor=size_to_send, dst=target_partition)
+                size_send_requests.append(size_send_req)
+
+        size_recv_requests = []
+
+        for source_partition in range(1, world_size):
+            if source_partition != self.rank:
+                size_recv_buffer = torch.zeros(2, dtype=torch.int64)
+                req = dist.irecv(tensor=size_recv_buffer, src=source_partition)
+                size_recv_requests.append(req)
+                size_recv_buffers.append((source_partition, size_recv_buffer))
+        for req in size_send_requests:
+            req.wait()
+        for req in size_recv_requests:
+            req.wait()
+        recv_sizes = {}
+        for (source_partition, buffer) in size_recv_buffers:
+            recv_sizes[source_partition] = buffer.tolist()
+        send_requests = []
+        recv_requests = []
+        recv_buffers = []
+
+        for target_partition in range(1, world_size):
+            if target_partition != self.rank:
+                nodes_to_send = [node_info[0] for node_info in sent_nodes[self.rank - 1][target_partition - 1]]
+                nodes_to_send = np.unique(nodes_to_send)
+                if len(nodes_to_send) > 0:
+                    tensor_to_send = x[nodes_to_send]
+                    send_req = dist.isend(tensor=tensor_to_send, dst=target_partition)
+                    send_requests.append(send_req)
+
+        for source_partition in range(1, world_size):
+            if source_partition != self.rank:
+                size = recv_sizes[source_partition]
+                recv_buffer = torch.zeros(size, dtype=x.dtype)
+                recv_req = dist.irecv(tensor=recv_buffer, src=source_partition)
+                print(size)
+                recv_requests.append(recv_req)
+                recv_buffers.append(recv_buffer)
+
+        requested_nodes_feature = []
+        for buffer in recv_buffers:
+            requested_nodes_feature.append(buffer)
+        requested_nodes_feature = torch.cat(requested_nodes_feature, dim=0)
+        x = torch.cat((x[:num_nodes], requested_nodes_feature.reshape(-1, self.nhid)), dim=0)
+
         x = F.dropout(x, self.dropout, training=self.training)
         x = self.conv2(x, edge_index)
         return F.log_softmax(x, dim=1)[:num_nodes]
@@ -164,13 +217,16 @@ def main(rank, world_size):
         _, pred = model(data).max(dim=1)
         pred = pred[:num_nodes]
         correct = float(pred[data.test_mask].eq(data.y[data.test_mask]).sum().item())
-        acc = correct / data.test_mask.sum().item()
         send_object(pred, 0)
         # pred = torch.sigmoid(model(data)) > 0.5
         # pred = pred[:num_nodes]
         # correct = pred[data.test_mask].eq(data.y[data.test_mask].to(torch.bool)).sum().item()
         # acc = correct / (data.test_mask.sum().item() * data.y.size(1))
-        print('Accuracy: {:.4f}'.format(acc))
+        if data.test_mask.sum().item() != 0:
+            acc = correct / data.test_mask.sum().item()
+            print("The accuracy at rank {} is {}".format(rank, acc))
+        else:
+            print("Rank {} has no test data".format(rank))
 
 
 if __name__ == "__main__":
