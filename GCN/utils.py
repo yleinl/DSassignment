@@ -8,6 +8,7 @@ from community import community_louvain
 from torch_geometric.data import Data
 from torch_geometric.utils import to_networkx
 
+
 def partition_data_prev(dataset, num_partitions):
     data = dataset
     num_nodes = data.num_nodes
@@ -26,7 +27,6 @@ def partition_data_prev(dataset, num_partitions):
         owned_nodes = torch.arange(start_idx, end_idx, dtype=torch.long)
         owned_mask = torch.zeros(num_nodes, dtype=torch.bool)
         owned_mask[owned_nodes] = True
-
 
         # redundant nodes
         edge_index = data.edge_index
@@ -85,6 +85,7 @@ def partition_data_prev(dataset, num_partitions):
 
     return partitions
 
+
 def partition_data(dataset, num_partitions):
     # data = dataset[0]
     data = dataset
@@ -95,11 +96,9 @@ def partition_data(dataset, num_partitions):
         node_partition_id[i] = i / partition_size + 1
     partitions = []
     for i in range(num_partitions):
-        # 分区内拥有的节点范围
         start_idx = i * partition_size
         end_idx = (i + 1) * partition_size if i != num_partitions - 1 else num_nodes
 
-        # 分区内拥有的节点
         owned_nodes = torch.arange(start_idx, end_idx, dtype=torch.long)
         owned_mask = torch.zeros(num_nodes, dtype=torch.bool)
         owned_mask[owned_nodes] = True
@@ -113,20 +112,20 @@ def partition_data(dataset, num_partitions):
                 for edge in edge_index.t():
                     for node_idx in edge:
                         node = node_idx.item()
-                        if node in owned_nodes and [node % partition_size, target_partition] not in sent_partition_nodes:
+                        if node in owned_nodes and [node % partition_size,
+                                        target_partition] not in sent_partition_nodes:
                             other_node = edge[1] if node_idx == edge[0] else edge[0]
                             if other_node not in owned_nodes and node_partition_id[other_node] == target_partition:
                                 sent_partition_nodes.append([node % partition_size, target_partition])
                 sent_nodes[source_partition - 1].append(sent_partition_nodes)
 
-        communication_sources = [[] for _ in range(num_partitions)]  # 初始化外层列表
+        communication_sources = [[] for _ in range(num_partitions)]
         for target_partition in range(1, num_partitions + 1):
             for source_partition in range(1, num_partitions + 1):
                 communication_nodes = []
                 for node in edge_index[:, connected_edges].view(-1):
                     if node not in owned_nodes and node_partition_id[node] == source_partition and [node.item(),
                                                                                                     source_partition] not in communication_nodes:
-                        # 添加节点索引和源分区，同时执行 mod 操作
                         communication_nodes.append([node.item() % partition_size, source_partition])
                 communication_sources[target_partition - 1].append(communication_nodes)
 
@@ -148,8 +147,6 @@ def partition_data(dataset, num_partitions):
         ])
         external_features = data.x[torch.tensor(external_nodes_sorted, dtype=torch.long)]
 
-
-        # 拷贝原来的数据特征
         partition_data = data.clone()
         partition_data.x = torch.cat((data.x[owned_nodes], external_features), dim=0)
         partition_data.edge_index = remapped_edge_index
@@ -243,6 +240,7 @@ def partition_data_louvain_sampled(dataset, num_partitions):
 
     return data, partition_data(data, num_partitions)
 
+
 def partition_data_louvain_prev(dataset, num_partitions):
     data = dataset[0]
     G = to_networkx(data, to_undirected=True)
@@ -316,22 +314,47 @@ def partition_data_louvain_prev(dataset, num_partitions):
     return partitions
 
 
+def send_with_timeout(tensor, dst, timeout=3):
+    start_time = time.time()
+    while time.time() - start_time < timeout:
+        try:
+            dist.send(tensor, dst=dst)
+            return True
+        except Exception as e:
+            time.sleep(1)  # 等待一段时间后重试
+    return False
+
+def recv_with_timeout(tensor, src, timeout=3):
+    start_time = time.time()
+    while time.time() - start_time < timeout:
+        try:
+            dist.recv(tensor, src=src)
+            return True
+        except Exception as e:
+            time.sleep(1)  # 等待一段时间后重试
+    return False
 
 def send_object(obj, dst):
     buffer = pickle.dumps(obj)
     buffer_list = list(buffer)
     tensor = torch.ByteTensor(buffer_list)
     size = torch.tensor([tensor.numel()], dtype=torch.long)
-    dist.send(size, dst=dst)
-    dist.send(tensor, dst=dst)
+    for _ in range(3):
+        if send_with_timeout(size, dst):
+            if send_with_timeout(tensor, dst):
+                return
+    raise RuntimeError("Failed to send object after retries.")
 
 def recv_object(src):
     size = torch.tensor([0], dtype=torch.long)
-    dist.recv(size, src=src)
+    if not recv_with_timeout(size, src):
+        raise RuntimeError("Failed to receive object size.")
     buffer = torch.empty((size.item(),), dtype=torch.uint8)
-    dist.recv(buffer, src=src)
+    if not recv_with_timeout(buffer, src):
+        raise RuntimeError("Failed to receive object.")
     obj = pickle.loads(buffer.numpy().tobytes())
     return obj
+
 
 def isend_object(obj, dst):
     buffer = pickle.dumps(obj)
@@ -340,20 +363,22 @@ def isend_object(obj, dst):
 
     return work_data
 
+
 def send_size_tensor(obj, dst):
     buffer = pickle.dumps(obj)
     buffer_tensor = torch.ByteTensor(list(buffer))
     size_tensor = torch.tensor([buffer_tensor.numel()], dtype=torch.long)
     dist.send(size_tensor, dst=dst)
 
-def irecv_object(src, size_tensor):
 
+def irecv_object(src, size_tensor):
     buffer_tensor = torch.empty((size_tensor.item(),), dtype=torch.uint8)
     work_data = dist.irecv(buffer_tensor, src=src)
 
     return work_data, buffer_tensor
 
-def try_send(tensor, dst, TIMEOUT = 1):
+
+def try_send(tensor, dst, TIMEOUT=1):
     req = dist.isend(tensor=tensor, dst=dst)
     start_time = time.time()
     while time.time() - start_time < TIMEOUT:
@@ -362,7 +387,8 @@ def try_send(tensor, dst, TIMEOUT = 1):
         time.sleep(0.1)  # 短暂休眠，避免过度占用CPU
     return False
 
-def try_recv(tensor, src, TIMEOUT = 1):
+
+def try_recv(tensor, src, TIMEOUT=1):
     req = dist.irecv(tensor=tensor, src=src)
     start_time = time.time()
     while time.time() - start_time < TIMEOUT:
@@ -370,3 +396,13 @@ def try_recv(tensor, src, TIMEOUT = 1):
             return True
         time.sleep(0.1)
     return False
+
+
+def wait_with_timeout(request, timeout_seconds=0.5):
+    start_time = time.time()
+    while not request.is_completed():
+        time.sleep(0.1)
+        if time.time() - start_time > timeout_seconds:
+            print(f"Timeout reached for request. Skipping...")
+            return False
+    return True

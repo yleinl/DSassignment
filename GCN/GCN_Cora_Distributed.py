@@ -6,7 +6,7 @@ from torch_geometric.datasets import Planetoid, Yelp
 from torch_geometric.nn import MessagePassing
 from torch_geometric.utils import degree, add_self_loops
 import torch.nn.functional as F
-from utils import recv_object, send_object, partition_data_louvain as partition_data, partition_data_louvain_sampled, try_recv, try_send
+from utils import recv_object, send_object, partition_data_louvain as partition_data, partition_data_louvain_sampled, wait_with_timeout
 from sampler import sample_data
 
 
@@ -108,7 +108,6 @@ class Net(torch.nn.Module):
         for buffer in recv_buffers:
             requested_nodes_feature.append(buffer)
         requested_nodes_feature = torch.cat(requested_nodes_feature, dim=0)
-        print("x len: ", len(x))
         x = torch.cat((x[:len(owned_nodes)], requested_nodes_feature.reshape(-1, self.nhid)), dim=0)
         x = F.dropout(x, self.dropout, training=self.training)
         x = self.conv2(x, edge_index)
