@@ -150,8 +150,8 @@ def get_master_addr(node_list):
     return '10.141.0.{}'.format(int(node_list[5:8]))
 
 
-def main(rank, world_size):
-    torch.distributed.init_process_group(backend="gloo", rank=rank, world_size=world_size)
+def main(rank, world_size, host_addr_full):
+    torch.distributed.init_process_group(backend="gloo", init_method=host_addr_full, rank=rank, world_size=world_size)
     print("Hello, I am ", rank)
     if rank == 0:
         name_data = 'PubMed'
@@ -219,8 +219,13 @@ def main(rank, world_size):
 
 
 if __name__ == "__main__":
-    rank = int(os.environ['LOCAL_RANK'])
-    world_size = int(os.environ['WORLD_SIZE'])
+    rank = int(os.environ['SLURM_PROCID'])
+    local_rank = int(os.environ['SLURM_LOCALID'])
+    world_size = int(os.environ['SLURM_NTASKS'])
 
-    main(rank, world_size)
+    host_addr = get_master_addr(os.environ['SLURM_STEP_NODELIST'])
+    port = 1234
+    host_addr_full = 'tcp://' + host_addr + ':' + str(port)
+    main(rank, world_size, host_addr_full)
+
 
