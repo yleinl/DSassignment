@@ -339,19 +339,15 @@ def send_object(obj, dst):
     buffer_list = list(buffer)
     tensor = torch.ByteTensor(buffer_list)
     size = torch.tensor([tensor.numel()], dtype=torch.long)
-    for _ in range(3):
-        if send_with_timeout(size, dst):
-            if send_with_timeout(tensor, dst):
-                return
-    raise RuntimeError("Failed to send object after retries.")
+    dist.send(size, dst=dst)
+    dist.send(tensor, dst=dst)
+
 
 def recv_object(src):
     size = torch.tensor([0], dtype=torch.long)
-    if not recv_with_timeout(size, src):
-        raise RuntimeError("Failed to receive object size.")
+    dist.recv(size, src=src)
     buffer = torch.empty((size.item(),), dtype=torch.uint8)
-    if not recv_with_timeout(buffer, src):
-        raise RuntimeError("Failed to receive object.")
+    dist.recv(buffer, src=src)
     obj = pickle.loads(buffer.numpy().tobytes())
     return obj
 
