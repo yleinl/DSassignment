@@ -80,25 +80,12 @@ class Net(torch.nn.Module):
     def forward(self, data):
         num_nodes, x, edge_index, owned_nodes = data.num_nodes, data.x, data.prev_edge_index, data.owned_nodes
         communication_sources, sent_nodes = data.communication_sources, data.sent_nodes
-        requested_nodes_list = self.generate_communication_list(num_nodes, edge_index[0], owned_nodes)
-
-        # print(x, x.shape)
-        # print(edge_index, edge_index.shape)
-        req = None
-        # print('world size', self.world_size)
-        send_requests = []
-        recv_requests = []
-        recv_buffers = []
-
         size_send_requests = []
         size_recv_buffers = []
-
-        # 发送数据形状
         for target_partition in range(1, world_size):
             if target_partition != self.rank:
                 nodes_to_send = [node_info[0] for node_info in sent_nodes[self.rank - 1][target_partition - 1]]
                 nodes_to_send = np.unique(nodes_to_send)
-                print(nodes_to_send.shape)
                 size_to_send = torch.tensor(x[nodes_to_send].shape, dtype=torch.int64)
                 size_send_req = dist.isend(tensor=size_to_send, dst=target_partition)
                 size_send_requests.append(size_send_req)
@@ -111,18 +98,13 @@ class Net(torch.nn.Module):
                 req = dist.irecv(tensor=size_recv_buffer, src=source_partition)
                 size_recv_requests.append(req)
                 size_recv_buffers.append((source_partition, size_recv_buffer))
-
-        # 等待所有数据形状的发送和接收完成
         for req in size_send_requests:
             req.wait()
         for req in size_recv_requests:
             req.wait()
         recv_sizes = {}
-        # 解析接收到的数据大小
         for (source_partition, buffer) in size_recv_buffers:
             recv_sizes[source_partition] = buffer.tolist()
-        print("发出的size是", recv_sizes)
-        # 然后进行实际数据的发送和接收
         send_requests = []
         recv_requests = []
         recv_buffers = []
@@ -134,17 +116,13 @@ class Net(torch.nn.Module):
                 if len(nodes_to_send) > 0:
                     tensor_to_send = x[nodes_to_send]
                     send_req = dist.isend(tensor=tensor_to_send, dst=target_partition)
-                    print("tensor_to_send形状为", tensor_to_send.shape)
-                    print("发送消息给", target_partition)
                     send_requests.append(send_req)
 
         for source_partition in range(1, world_size):
             if source_partition != self.rank:
                 size = recv_sizes[source_partition]
-                print("size是", size)
                 recv_buffer = torch.zeros(size, dtype=x.dtype)
                 recv_req = dist.irecv(tensor=recv_buffer, src=source_partition)
-                print("buffer形状为", recv_buffer.shape)
                 print(size)
                 recv_requests.append(recv_req)
                 recv_buffers.append(recv_buffer)
@@ -154,48 +132,11 @@ class Net(torch.nn.Module):
         for req in recv_requests:
             req.wait()
 
-        # 处理接收到的数据
         requested_nodes_feature = []
         for buffer in recv_buffers:
             requested_nodes_feature.append(buffer)
-
-        # 连接接收到的特征
         requested_nodes_feature = torch.cat(requested_nodes_feature, dim=0)
-        # print('before cat in rank ', self.rank, x.shape)
         x = torch.cat((x, requested_nodes_feature.reshape(-1, self.nfeat)), dim=0)
-        # print('after cat in rank', self.rank, x.shape)
-        # print('Rank ', self.rank, ' has data ', x)
-        # if self.rank == 1:
-        #     # Send the tensor list to node 2
-        #     print('Rank 1 sending', requested_nodes_list[i])
-        #     send_object(torch.tensor(requested_nodes_list[i]), dst=2)
-        #     print('Rank 1 has requested data')
-        #     requested_nodes_feature = recv_object(src=2)
-        #     print('Rank 1 has received', requested_nodes_feature)
-        #
-        #     # Receive tensor list from node 2
-        #     requested_nodes_list = recv_object(src=2)
-        #     print('Rank 1 has received', requested_nodes_list)
-        #     remapped_idx = self.remap_index(requested_nodes_list, owned_nodes)
-        #     print('Rank 1 index remapped to ', remapped_idx)
-        #     send_object(x[remapped_idx], dst=2)
-        #     print('Rank 1 has sent requested data')
-        # else:
-        #     # Receive tensor list from node 1
-        #     nodes_list = recv_object(src=1)
-        #     print('Rank 2 has received', nodes_list)
-        #     remapped_idx = self.remap_index(nodes_list, owned_nodes)
-        #     print('Rank 2 index remapped to ', remapped_idx)
-        #     send_object(x[remapped_idx], dst=1)
-        #     print('Rank 2 has sent requested data')
-        #
-        #     # Send the tensor list to node 1
-        #     print('Rank 2 sending', requested_nodes_list[i])
-        #     send_object(torch.tensor(requested_nodes_list[i]), dst=1)
-        #     print('Rank 2 has requested data')
-        #     requested_nodes_feature = recv_object(src=1)
-        #     print('Rank 2 has received', requested_nodes_feature)
-
         edge_index = data.edge_index
 
         x = self.conv1(x, edge_index)
@@ -217,12 +158,6 @@ def main(rank, world_size):
         name_data = 'Cora'
         dataset = Planetoid(root='/tmp/' + name_data, name=name_data)
         new_data, partitions = partition_data(dataset, world_size - 1)
-        # name_data = 'Yelp'
-        # dataset = Yelp(root='/tmp/' + name_data)
-        # dataset = sample_data(dataset, sample_fraction=0.01)
-        # new_data, partitions = partition_data_louvain_sampled(dataset, world_size - 1)
-        # print("partition 0", partitions[0].sent_nodes)
-        # print("partition 1", partitions[0].communication_sources)
         for dst_rank in range(1, world_size):
             send_object(partitions[dst_rank - 1], dst=dst_rank)
             print("data sent to node {}".format(dst_rank))
@@ -260,7 +195,7 @@ def main(rank, world_size):
         acc = correct / data.test_mask.sum().item()
         # pred = torch.sigmoid(model(data)) > 0.5
         # pred = pred[:num_nodes]
-        # send_object(pred, 0)
+        send_object(pred, 0)
         # correct = pred[data.test_mask].eq(data.y[data.test_mask].to(torch.bool)).sum().item()
         # acc = correct / (data.test_mask.sum().item() * data.y.size(1))
         print('Accuracy: {:.4f}'.format(acc))

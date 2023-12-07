@@ -114,7 +114,6 @@ def partition_data(dataset, num_partitions):
                         if node in owned_nodes and [node, target_partition] not in sent_partition_nodes:
                             other_node = edge[1] if node_idx == edge[0] else edge[0]
                             if other_node not in owned_nodes and node_partition_id[other_node] == target_partition:
-                                # 添加节点索引和目标分区，同时执行 mod 操作
                                 sent_partition_nodes.append([node % partition_size, target_partition])
                                 break
                 sent_nodes[source_partition - 1].append(sent_partition_nodes)
@@ -130,36 +129,9 @@ def partition_data(dataset, num_partitions):
                         communication_nodes.append([node.item() % partition_size, source_partition])
                 communication_sources[target_partition - 1].append(communication_nodes)
 
-        # communication_sources = []
-        # sent_nodes = []
-        # for index in range(1, num_partitions + 1):
-        #     communication_nodes = []
-        #     for node in edge_index[:, connected_edges].view(-1):
-        #         if node not in owned_nodes and node_partition_id[node] == index and node not in communication_nodes:
-        #             communication_nodes.append(node.item())
-        #     communication_sources.append(communication_nodes)
-        #
-        #
-        # for index in range(1, num_partitions + 1):
-        #     sent_partition_nodes = []
-        #     for edge in edge_index.t():
-        #         for node_idx in edge:
-        #             node = node_idx.item()
-        #             if node in owned_nodes and node not in sent_partition_nodes:
-        #                 other_node = edge[1] if node_idx == edge[0] else edge[0]
-        #                 if other_node not in owned_nodes and node_partition_id[other_node] == index:
-        #                     sent_partition_nodes.append(node)
-        #                     break
-        #     sent_nodes.append(sent_partition_nodes)
-        # external_node_mapping = {}
-        # remapped_edge_index = edge_index[:, connected_edges]
-        # remapped_edge_index[0, :] = torch.tensor([owned_nodes.tolist().index(node.item()) if node.item() in owned_nodes else external_node_mapping.setdefault(node.item(), new_index + len(external_node_mapping)) for node in remapped_edge_index[0]])
-        # remapped_edge_index[1, :] = torch.tensor([owned_nodes.tolist().index(node.item()) if node.item() in owned_nodes else external_node_mapping.setdefault(node.item(), new_index + len(external_node_mapping)) for node in remapped_edge_index[1]])
-
-        external_nodes = [node.item() for node in edge_index[:, connected_edges].flatten()
-                          if node.item() not in owned_nodes]
-        external_nodes_sorted = sorted(set(external_nodes))
-
+        external_nodes = set(node.item() for node in edge_index[:, connected_edges].flatten()
+                             if node.item() not in owned_nodes)
+        external_nodes_sorted = sorted(external_nodes)
         external_node_mapping = {node: i + len(owned_nodes) for i, node in enumerate(external_nodes_sorted)}
 
         remapped_edge_index = edge_index[:, connected_edges]
