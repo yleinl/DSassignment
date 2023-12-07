@@ -157,7 +157,7 @@ def main(rank, world_size, host_addr_full):
         name_data = 'Yelp'
         dataset = Yelp(root='/tmp/' + name_data)
         dataset = sample_data(dataset, sample_fraction=0.6)
-        new_data, partitions = partition_data_louvain_sampled(dataset, world_size - 1)
+        new_data, partitions = partition_data_louvain_sampled(dataset, world_size)
         for dst_rank in range(1, world_size):
             send_object(partitions[dst_rank], dst=dst_rank)
             print("data sent to node {}".format(dst_rank))

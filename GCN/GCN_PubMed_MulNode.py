@@ -154,7 +154,7 @@ def main(rank, world_size, host_addr_full):
     if rank == 0:
         name_data = 'PubMed'
         dataset = Planetoid(root='/tmp/' + name_data, name=name_data)
-        new_data, partitions = partition_data(dataset, world_size - 1)
+        new_data, partitions = partition_data(dataset, world_size)
         for dst_rank in range(1, world_size):
             send_object(partitions[dst_rank], dst=dst_rank)
             print("data sent to node {}".format(dst_rank))
