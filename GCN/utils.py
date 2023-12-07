@@ -1,3 +1,4 @@
+import math
 import pickle
 import torch
 import torch.distributed as dist
@@ -86,7 +87,7 @@ def partition_data(dataset, num_partitions):
     # data = dataset[0]
     data = dataset
     num_nodes = data.num_nodes
-    partition_size = num_nodes // num_partitions
+    partition_size = math.ceil(num_nodes / num_partitions)
     node_partition_id = torch.zeros(num_nodes, dtype=torch.long)
     for i in range(len(node_partition_id)):
         node_partition_id[i] = i / partition_size + 1
@@ -103,7 +104,6 @@ def partition_data(dataset, num_partitions):
 
         edge_index = data.edge_index
         connected_edges = owned_mask[edge_index[0]] | owned_mask[edge_index[1]]
-        new_index = len(owned_nodes)
         sent_nodes = [[] for _ in range(num_partitions)]
         for source_partition in range(1, num_partitions + 1):
             for target_partition in range(1, num_partitions + 1):
