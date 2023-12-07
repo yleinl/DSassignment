@@ -166,7 +166,10 @@ class Net(torch.nn.Module):
         for buffer in recv_buffers:
             requested_nodes_feature.append(buffer)
         requested_nodes_feature = torch.cat(requested_nodes_feature, dim=0)
-        x = torch.cat((x[:len(owned_nodes)], requested_nodes_feature.reshape(-1, self.nhid)), dim=0)
+        # x = torch.cat((x[:len(owned_nodes)], requested_nodes_feature.reshape(-1, self.nhid)), dim=0)
+        replacement = requested_nodes_feature.reshape(-1, self.nhid)
+        replacement_length = min(len(replacement), len(x) - len(owned_nodes))
+        x[len(owned_nodes):len(owned_nodes) + replacement_length] = replacement[:replacement_length]
         
         x = self.conv2(x, edge_index)
         return F.log_softmax(x, dim=1)[:len(owned_nodes)]
