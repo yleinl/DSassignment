@@ -110,7 +110,7 @@ class MPNNNet(torch.nn.Module):
             x = torch.cat((x, requested_nodes_feature.reshape(-1, self.nfeat)), dim = 0)
             print('after cat in rank', self.rank, x.shape)
             print('Rank ', self.rank, ' has data ', x) 
-edge_index = data.edge_index
+        edge_index = data.edge_index
         x = self.mpnn1(x, edge_index)
         x = F.relu(x)
         x = F.dropout(x, self.dropout, training=self.training)
