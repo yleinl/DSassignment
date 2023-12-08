@@ -187,7 +187,7 @@ def main(rank, world_size, host_addr_full):
     print("Hello, I am ", rank)
     if rank == 0:
         name_data = 'PubMed'
-        dataset = Planetoid(root='/tmp/' + name_data, name=name_data)
+        dataset = Planetoid(root='/home/dsys2352/data/' + name_data, name=name_data)
         new_data, partitions = partition_data(dataset, world_size)
         for dst_rank in range(1, world_size):
             send_object(partitions[dst_rank], dst=dst_rank)
