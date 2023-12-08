@@ -50,14 +50,27 @@ class Net(torch.nn.Module):
         self.dropout = dropout
 
     def forward(self, data):
-        num_nodes, x, edge_index, owned_nodes = data.num_nodes, data.x, data.prev_edge_index, data.owned_nodes
-        communication_sources, sent_nodes = data.communication_sources, data.sent_nodes
-
+        num_nodes, x, prev_edge_index, owned_nodes = data.num_nodes, data.x, data.prev_edge_index, data.owned_nodes
+        sent_nodes = data.sent_nodes
+        partition_size = data.partition_size
+        node_partition_id = data.node_partition_id
         edge_index = data.edge_index
+
+        for target_partition in range(1, world_size+1):
+            sent_partition_nodes = []
+            for edge in prev_edge_index.t():
+                for node_idx in edge:
+                    node = node_idx.item()
+                    if node in owned_nodes and [node % partition_size, target_partition] not in sent_partition_nodes:
+                        other_node = edge[1] if node_idx == edge[0] else edge[0]
+                        if other_node not in owned_nodes and node_partition_id[other_node] == target_partition:
+                            sent_partition_nodes.append([node % partition_size, target_partition])
+            sent_nodes[self.rank].append(sent_partition_nodes)
 
         x = self.conv1(x, edge_index)
 
         x = F.relu(x)
+
         size_send_requests = []
         size_recv_buffers = []
         for target_partition in range(0, world_size):
@@ -101,7 +114,6 @@ class Net(torch.nn.Module):
                 size = recv_sizes[source_partition]
                 recv_buffer = torch.zeros(size, dtype=x.dtype)
                 recv_req = dist.irecv(tensor=recv_buffer, src=source_partition)
-                print(size)
                 recv_requests.append(recv_req)
                 recv_buffers.append(recv_buffer)
 
@@ -129,7 +141,6 @@ def main(rank, world_size):
         name_data = 'Cora'
         dataset = Planetoid(root='/tmp/' + name_data, name=name_data)
         new_data, partitions = partition_data(dataset, world_size)
-        print(partitions[0].num_nodes)
         for dst_rank in range(1, world_size):
             send_object(partitions[dst_rank], dst=dst_rank)
             print("data sent to node {}".format(dst_rank))
