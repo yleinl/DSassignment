@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #SBATCH --job-name=gcn_distributed
-#SBATCH --nodes=3
+#SBATCH --nodes=6
 #SBATCH --ntasks-per-node=1
 #SBATCH --time=01:00:00
 
@@ -11,7 +11,7 @@ export WORLD_SIZE=$SLURM_NTASKS
 
 srun python -m torch.distributed.launch \
         --nproc_per_node=1 \
-        --nnodes=3 \
+        --nnodes=6 \
         --node_rank=$SLURM_NODEID \
         --master_addr=10.141.0.1 \
         --master_port=12345 \
