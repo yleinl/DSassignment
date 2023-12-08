@@ -79,16 +79,28 @@ class Net(torch.nn.Module):
         return requested_nodes_list % owned_nodes.shape[0]
 
     def forward(self, data):
-        num_nodes, x, edge_index, owned_nodes = data.num_nodes, data.x, data.prev_edge_index, data.owned_nodes
-        communication_sources, sent_nodes = data.communication_sources, data.sent_nodes
+        num_nodes, x, prev_edge_index, owned_nodes = data.num_nodes, data.x, data.prev_edge_index, data.owned_nodes
+        sent_nodes = data.sent_nodes
+        partition_size = data.partition_size
+        node_partition_id = data.node_partition_id
         edge_index = data.edge_index
+
+        for target_partition in range(1, world_size+1):
+            sent_partition_nodes = []
+            for edge in prev_edge_index.t():
+                for node_idx in edge:
+                    node = node_idx.item()
+                    if node in owned_nodes and [node % partition_size, target_partition] not in sent_partition_nodes:
+                        other_node = edge[1] if node_idx == edge[0] else edge[0]
+                        if other_node not in owned_nodes and node_partition_id[other_node] == target_partition:
+                            sent_partition_nodes.append([node % partition_size, target_partition])
+            sent_nodes[self.rank].append(sent_partition_nodes)
 
         x = self.conv1(x, edge_index)
 
         x = F.relu(x)
         x = F.dropout(x, self.dropout, training=self.training)
 
-        x = F.relu(x)
         size_send_requests = []
         size_recv_buffers = []
         for target_partition in range(0, world_size):
@@ -140,8 +152,10 @@ class Net(torch.nn.Module):
         for buffer in recv_buffers:
             requested_nodes_feature.append(buffer)
         requested_nodes_feature = torch.cat(requested_nodes_feature, dim=0)
-        x = torch.cat((x[:num_nodes], requested_nodes_feature.reshape(-1, self.nhid)), dim=0)
-
+        # x = torch.cat((x[:num_nodes], requested_nodes_feature.reshape(-1, self.nhid)), dim=0)
+        replacement = requested_nodes_feature.reshape(-1, self.nhid)
+        replacement_length = min(len(replacement), len(x) - len(owned_nodes))
+        x[len(owned_nodes):len(owned_nodes) + replacement_length] = replacement[:replacement_length]
         x = self.conv2(x, edge_index)
         return F.log_softmax(x, dim=1)[:num_nodes]
 

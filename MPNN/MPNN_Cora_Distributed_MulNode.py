@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 #SBATCH --job-name=gcn_distributed
 #SBATCH --nodes=3
 #SBATCH --ntasks-per-node=1
