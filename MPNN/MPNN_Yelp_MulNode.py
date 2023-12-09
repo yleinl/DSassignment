@@ -78,8 +78,13 @@ class MPNNNet(torch.nn.Module):
         node_partition_id = data.node_partition_id
         edge_index = data.edge_index
 
+        recv_len = {}
+        recv_sizes = {}
+
         for target_partition in range(1, world_size+1):
             sent_partition_nodes = []
+            recv_partition_nodes = []
+            recv_len[target_partition] = 0
             for edge in prev_edge_index.t():
                 for node_idx in edge:
                     node = node_idx.item()
@@ -87,40 +92,23 @@ class MPNNNet(torch.nn.Module):
                         other_node = edge[1] if node_idx == edge[0] else edge[0]
                         if other_node not in owned_nodes and node_partition_id[other_node] == target_partition:
                             sent_partition_nodes.append([node % partition_size, target_partition])
+                    if node in owned_nodes:
+                        other_node = edge[1] if node_idx == edge[0] else edge[0]
+                        if (other_node not in owned_nodes and node_partition_id[other_node] == target_partition
+                                and [other_node % partition_size, target_partition] not in recv_partition_nodes):
+                            recv_partition_nodes.append([other_node % partition_size, target_partition])
+                            recv_len[target_partition] = recv_len[target_partition] + 1
             sent_nodes[self.rank].append(sent_partition_nodes)
+            if recv_len[target_partition] > 0:
+                recv_sizes[target_partition - 1] = [recv_len[target_partition], self.nhid]
 
         x = self.mpnn1(x, edge_index)
-
+        dist.barrier()
         x = F.relu(x)
         x = F.dropout(x, self.dropout, training=self.training)
 
         x = F.relu(x)
-        size_send_requests = []
-        size_recv_buffers = []
 
-        for target_partition in range(0, world_size):
-            if target_partition != self.rank:
-                nodes_to_send = [node_info[0] for node_info in sent_nodes[self.rank][target_partition]]
-                nodes_to_send = np.unique(nodes_to_send)
-                size_to_send = torch.tensor(x[nodes_to_send].shape, dtype=torch.int64)
-                size_send_req = dist.isend(tensor=size_to_send, dst=target_partition)
-                size_send_requests.append(size_send_req)
-
-        size_recv_requests = []
-
-        for source_partition in range(0, world_size):
-            if source_partition != self.rank:
-                size_recv_buffer = torch.zeros(2, dtype=torch.int64)
-                req = dist.irecv(tensor=size_recv_buffer, src=source_partition)
-                size_recv_requests.append(req)
-                size_recv_buffers.append((source_partition, size_recv_buffer))
-        for req in size_send_requests:
-            req.wait()
-        for req in size_recv_requests:
-            req.wait()
-        recv_sizes = {}
-        for (source_partition, buffer) in size_recv_buffers:
-            recv_sizes[source_partition] = buffer.tolist()
         send_requests = []
         recv_requests = []
         recv_buffers = []
