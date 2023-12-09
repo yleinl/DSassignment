@@ -172,7 +172,7 @@ def main(rank, world_size, host_addr_full):
     print("Hello, I am ", rank)
     if rank == 0:
         name_data = 'Reddit'
-        dataset = Reddit(root='/home/dsys2352/data/Reddit')
+        dataset = Reddit(root='/tmp/Reddit')
         dataset = sample_data(dataset, sample_fraction=0.6)
         new_data, partitions = partition_data_louvain_sampled(dataset, world_size)
         for dst_rank in range(1, world_size):
