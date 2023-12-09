@@ -99,7 +99,6 @@ class MPNNNet(torch.nn.Module):
         dist.barrier()
         x = F.relu(x)
         x = F.dropout(x, self.dropout, training=self.training)
-        x = self.mpnn2(x, edge_index)
 
         x = F.relu(x)
 
