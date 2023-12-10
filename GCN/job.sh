@@ -5,7 +5,8 @@
 #SBATCH --ntasks-per-node=1
 #SBATCH --time=01:00:00
 
-source /home/dsys2352/miniconda3/bin/activate /home/dsys2352/miniconda3/envs/dist_GNN
+#mannully activate virtual env before submitting job script
+
 export RANK=$SLURM_NODEID
 export WORLD_SIZE=$SLURM_NTASKS
 
@@ -16,4 +17,4 @@ srun python -m torch.distributed.launch \
         --master_addr=10.141.0.1 \
         --master_port=12345 \
         --use_env \
-	GCN_Reddit_MulNode.py
+	GCN_Cora_Distributed_MulNode.py
