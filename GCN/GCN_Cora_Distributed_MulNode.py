@@ -131,7 +131,7 @@ class Net(torch.nn.Module):
         return F.log_softmax(x, dim=1)[:len(owned_nodes)]
 
 def get_master_addr(node_list):
-    return '10.141.0.{}'.format(int(node_list[5:8]))
+    return '10.149.0.{}'.format(int(node_list[5:8]))
 
 def main(rank, world_size, host_addr_full):
     torch.distributed.init_process_group(backend="gloo", init_method=host_addr_full, rank=rank, world_size=world_size)
