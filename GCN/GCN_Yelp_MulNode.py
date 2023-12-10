@@ -85,13 +85,8 @@ class Net(torch.nn.Module):
         node_partition_id = data.node_partition_id
         edge_index = data.edge_index
 
-        recv_len = {}
-        recv_sizes = {}
-
         for target_partition in range(1, world_size+1):
             sent_partition_nodes = []
-            recv_partition_nodes = []
-            recv_len[target_partition] = 0
             for edge in prev_edge_index.t():
                 for node_idx in edge:
                     node = node_idx.item()
@@ -99,18 +94,10 @@ class Net(torch.nn.Module):
                         other_node = edge[1] if node_idx == edge[0] else edge[0]
                         if other_node not in owned_nodes and node_partition_id[other_node] == target_partition:
                             sent_partition_nodes.append([node % partition_size, target_partition])
-                    if node in owned_nodes:
-                        other_node = edge[1] if node_idx == edge[0] else edge[0]
-                        if (other_node not in owned_nodes and node_partition_id[other_node] == target_partition
-                                and [other_node % partition_size, target_partition] not in recv_partition_nodes):
-                            recv_partition_nodes.append([other_node % partition_size, target_partition])
-                            recv_len[target_partition] = recv_len[target_partition] + 1
             sent_nodes[self.rank].append(sent_partition_nodes)
-            if recv_len[target_partition] > 0:
-                recv_sizes[target_partition - 1] = [recv_len[target_partition], self.nhid]
 
         x = self.conv1(x, edge_index)
-        dist.barrier()
+
         x = F.relu(x)
         x = F.dropout(x, self.dropout, training=self.training)
 
