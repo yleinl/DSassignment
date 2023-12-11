@@ -85,7 +85,6 @@ class MPNNNet(torch.nn.Module):
         x = self.mpnn1(x, edge_index)
         x = F.relu(x)
         x = F.dropout(x, self.dropout, training=self.training)
-        x = self.mpnn2(x, edge_index)
 
         x = F.relu(x)
         size_send_requests = []
