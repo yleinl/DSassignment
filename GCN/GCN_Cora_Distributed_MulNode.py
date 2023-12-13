@@ -118,6 +118,8 @@ class Net(torch.nn.Module):
                 recv_requests.append(recv_req)
                 recv_buffers.append(recv_buffer)
 
+        dist.barrier()
+
         requested_nodes_feature = []
         for buffer in recv_buffers:
             requested_nodes_feature.append(buffer)
