@@ -254,7 +254,7 @@ def try_recv(tensor, src, TIMEOUT=1):
     return False
 
 
-def wait_with_timeout(request, timeout_seconds=0.5):
+def wait_with_timeout(request, timeout_seconds=5):
     start_time = time.time()
     while not request.is_completed():
         time.sleep(0.1)
