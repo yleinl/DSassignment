@@ -29,29 +29,6 @@ def partition_data(dataset, num_partitions):
         connected_edges = owned_mask[edge_index[0]] | owned_mask[edge_index[1]]
         sent_nodes = [[] for _ in range(num_partitions)]
 
-        recv_sizes = {}
-
-        communication_sources = [0] * (num_partitions)
-        for target_partition in range(1, num_partitions + 1):
-            recv_partition_nodes = []
-            for edge in edge_index.t():
-                for node_idx in edge:
-                    node = node_idx.item()
-                    if node in owned_nodes:
-                        other_node = edge[1] if node_idx == edge[0] else edge[0]
-                        if (other_node not in owned_nodes and node_partition_id[other_node] == target_partition
-                                and [other_node % partition_size, target_partition] not in recv_partition_nodes):
-                            recv_partition_nodes.append([other_node % partition_size, target_partition])
-                            communication_sources[target_partition - 1] = communication_sources[target_partition - 1] + 1
-
-        for resource_index, value in enumerate(communication_sources):
-            if value != 0:
-                if resource_index not in recv_sizes:
-                    recv_sizes[resource_index] = []
-                recv_sizes[resource_index].append(value)
-                recv_sizes[resource_index].append(16)
-
-
         for target_partition in range(1, num_partitions + 1):
             sent_partition_nodes = []
             for edge in edge_index.t():
@@ -93,7 +70,7 @@ def partition_data(dataset, num_partitions):
         partition_data.num_classes = dataset.num_classes
         partition_data.owned_nodes = owned_nodes
         partition_data.num_nodes = num_nodes
-        partition_data.communication_sources = recv_sizes
+        partition_data.communication_sources = 0
         partition_data.sent_nodes = sent_nodes
         partition_data.partition_size = partition_size
 
