@@ -52,35 +52,37 @@ class Net(torch.nn.Module):
     def forward(self, data):
         num_nodes, x, edge_index, owned_nodes = data.num_nodes, data.x, data.edge_index, data.owned_nodes
         communication_sources, sent_nodes = data.communication_sources, data.sent_nodes
+        recv_sizes = communication_sources
         x = self.conv1(x, edge_index)
 
         x = F.relu(x)
-
-        size_send_requests = []
-        size_recv_buffers = []
-        for target_partition in range(0, world_size):
-            if target_partition != self.rank:
-                nodes_to_send = [node_info[0] for node_info in sent_nodes[self.rank][target_partition]]
-                nodes_to_send = np.unique(nodes_to_send)
-                size_to_send = torch.tensor(x[nodes_to_send].shape, dtype=torch.int64)
-                size_send_req = dist.isend(tensor=size_to_send, dst=target_partition)
-                size_send_requests.append(size_send_req)
-
-        size_recv_requests = []
-
-        for source_partition in range(0, world_size):
-            if source_partition != self.rank:
-                size_recv_buffer = torch.zeros(2, dtype=torch.int64)
-                req = dist.irecv(tensor=size_recv_buffer, src=source_partition)
-                size_recv_requests.append(req)
-                size_recv_buffers.append((source_partition, size_recv_buffer))
-        for req in size_send_requests:
-            req.wait()
-        for req in size_recv_requests:
-            req.wait()
-        recv_sizes = {}
-        for (source_partition, buffer) in size_recv_buffers:
-            recv_sizes[source_partition] = buffer.tolist()
+        print(self.rank, ":communication sources", communication_sources)
+        # size_send_requests = []
+        # size_recv_buffers = []
+        # for target_partition in range(0, world_size):
+        #     if target_partition != self.rank:
+        #         nodes_to_send = [node_info[0] for node_info in sent_nodes[self.rank][target_partition]]
+        #         nodes_to_send = np.unique(nodes_to_send)
+        #         size_to_send = torch.tensor(x[nodes_to_send].shape, dtype=torch.int64)
+        #         size_send_req = dist.isend(tensor=size_to_send, dst=target_partition)
+        #         size_send_requests.append(size_send_req)
+        #
+        # size_recv_requests = []
+        #
+        # for source_partition in range(0, world_size):
+        #     if source_partition != self.rank:
+        #         size_recv_buffer = torch.zeros(2, dtype=torch.int64)
+        #         req = dist.irecv(tensor=size_recv_buffer, src=source_partition)
+        #         size_recv_requests.append(req)
+        #         size_recv_buffers.append((source_partition, size_recv_buffer))
+        # for req in size_send_requests:
+        #     req.wait()
+        # for req in size_recv_requests:
+        #     req.wait()
+        # recv_sizes = {}
+        # for (source_partition, buffer) in size_recv_buffers:
+        #     recv_sizes[source_partition] = buffer.tolist()
+        # print("recv sizes", recv_sizes)
         send_requests = []
         recv_requests = []
         recv_buffers = []
@@ -101,6 +103,9 @@ class Net(torch.nn.Module):
                 recv_req = dist.irecv(tensor=recv_buffer, src=source_partition)
                 recv_requests.append(recv_req)
                 recv_buffers.append(recv_buffer)
+
+        for req in send_requests + recv_requests:
+            wait_with_timeout(req)
 
         requested_nodes_feature = []
         for buffer in recv_buffers:
