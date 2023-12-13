@@ -29,16 +29,16 @@ def partition_data(dataset, num_partitions):
         connected_edges = owned_mask[edge_index[0]] | owned_mask[edge_index[1]]
         sent_nodes = [[] for _ in range(num_partitions)]
 
-        # for target_partition in range(1, num_partitions + 1):
-        #     sent_partition_nodes = []
-        #     for edge in edge_index.t():
-        #         for node_idx in edge:
-        #             node = node_idx.item()
-        #             if node in owned_nodes and [node % partition_size, target_partition] not in sent_partition_nodes:
-        #                 other_node = edge[1] if node_idx == edge[0] else edge[0]
-        #                 if other_node not in owned_nodes and node_partition_id[other_node] == target_partition:
-        #                     sent_partition_nodes.append([node % partition_size, target_partition])
-        #     sent_nodes[i].append(sent_partition_nodes)
+        for target_partition in range(1, num_partitions + 1):
+            sent_partition_nodes = []
+            for edge in edge_index.t():
+                for node_idx in edge:
+                    node = node_idx.item()
+                    if node in owned_nodes and [node % partition_size, target_partition] not in sent_partition_nodes:
+                        other_node = edge[1] if node_idx == edge[0] else edge[0]
+                        if other_node not in owned_nodes and node_partition_id[other_node] == target_partition:
+                            sent_partition_nodes.append([node % partition_size, target_partition])
+            sent_nodes[i].append(sent_partition_nodes)
 
         external_nodes = set(node.item() for node in edge_index[:, connected_edges].flatten()
                              if node.item() not in owned_nodes)
