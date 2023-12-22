@@ -1,15 +1,12 @@
 import numpy as np
 import torch
-import torch.nn as nn
 import torch.nn.functional as F
 import os
 import torch.distributed as dist
-from torch_geometric.data import Data
 from torch_geometric.nn import GATConv
 from torch_geometric.datasets import Planetoid
-import torch_geometric.transforms as T
+from torch_geometric.nn import MessagePassing
 from utils import recv_object, send_object, partition_data_louvain as partition_data
-from sampler import sample_data
 
 torch.manual_seed(2020)
 
@@ -58,11 +55,42 @@ class Net(torch.nn.Module):
 
         self.conv2 = GATConv(self.nhid*self.in_head, self.nclass, concat=False, heads=self.out_head, dropout=self.dropout)
 
+    def generate_communication_list(self, num_nodes, nodes_from, owned_nodes):
+
+        communication_nodes = np.unique([node for node in nodes_from if node not in owned_nodes])
+
+        requested_nodes_list = []
+        for i in range(self.world_size):
+            nodes = []
+            requested_nodes_list.append(nodes)
+
+        num_partitions = self.world_size - 1
+        partition_size = num_nodes // num_partitions
+        start_idx = [i * partition_size for i in range(num_partitions)]
+        end_idx = [(i + 1) * partition_size if i != num_partitions - 1 else num_nodes for i in range(num_partitions)]
+        Range = [range(start_idx[i], end_idx[i]) for i in range(num_partitions)]
+
+        print('Range')
+        print(Range)
+        for node in communication_nodes:
+            for i in range(num_partitions):
+                if node in Range[i]:
+                    requested_nodes_list[i + 1].append(node)
+
+        print('requested_nodes_list')
+        print(requested_nodes_list)
+
+        return requested_nodes_list
+
+    def remap_index(self, requested_nodes_list, owned_nodes):
+        return requested_nodes_list % owned_nodes.shape[0]
+    
     def forward(self, data):
         num_nodes, x, prev_edge_index, owned_nodes = data.num_nodes, data.x, data.prev_edge_index, data.owned_nodes
         sent_nodes = data.sent_nodes
         partition_size = data.partition_size
         node_partition_id = data.node_partition_id
+        edge_index = data.edge_index
 
         for target_partition in range(1, world_size+1):
             sent_partition_nodes = []
@@ -74,12 +102,12 @@ class Net(torch.nn.Module):
                         if other_node not in owned_nodes and node_partition_id[other_node] == target_partition:
                             sent_partition_nodes.append([node % partition_size, target_partition])
             sent_nodes[self.rank].append(sent_partition_nodes)
-        edge_index = data.edge_index
 
         x = F.dropout(x, p=0.6, training=self.training)
         x = self.conv1(x, edge_index)
         x = F.elu(x)
         x = F.dropout(x, p=0.6, training=self.training)
+
         size_send_requests = []
         size_recv_buffers = []
         for target_partition in range(0, world_size):
@@ -146,7 +174,7 @@ def main(rank, world_size, host_addr_full):
     torch.distributed.init_process_group(backend="gloo", init_method=host_addr_full, rank=rank, world_size=world_size)
     print("Hello, I am ", rank)
     if rank == 0:
-        name_data = 'Cora'
+        name_data = 'PubMed'
         dataset = Planetoid(root= '/tmp/' + name_data, name = name_data)
         new_data, partitions = partition_data(dataset, world_size)
         for dst_rank in range(1, world_size):
@@ -165,7 +193,7 @@ def main(rank, world_size, host_addr_full):
         device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         model = Net(nfeat, nhid, in_head, out_head, nclass, dropout, rank, world_size).to(device)
         data = dataset.to(device)
-        model.load_state_dict(torch.load('model_epoch_1000_Cora.pth'))
+        model.load_state_dict(torch.load('model_epoch_1000_PubMed.pth'))
         model.eval()
         _, pred = model(data).max(dim=1)
         pred = pred[:num_nodes]
@@ -199,7 +227,7 @@ def main(rank, world_size, host_addr_full):
         device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         model = Net(nfeat, nhid, in_head, out_head, nclass, dropout, rank, world_size).to(device)
         data = dataset.to(device)
-        model.load_state_dict(torch.load('model_epoch_1000_Cora.pth'))
+        model.load_state_dict(torch.load('model_epoch_1000_PubMed.pth'))
         model.eval()
         _, pred = model(data).max(dim=1)
         pred = pred[:num_nodes]
@@ -219,5 +247,4 @@ if __name__ == "__main__":
     host_addr = get_master_addr(os.environ['SLURM_STEP_NODELIST'])
     port = 1234
     host_addr_full = 'tcp://' + host_addr + ':' + str(port)
-
     main(rank, world_size, host_addr_full)
